@@ -1,0 +1,240 @@
+from pathlib import Path
+import gc
+import numpy as np
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
+
+DATA_DIR = Path("data")
+POST_DIR = Path("post")
+
+POST_DIR.mkdir(exist_ok=True)
+
+def load_field(filename):
+
+  # ---------------------------
+  # Load field stored as:
+  #     ix iy value
+  # 
+  # and reconstruct a 2D array.
+  # ---------------------------
+
+  data = np.loadtxt(filename)
+
+  ix = data[:, 0].astype(int)
+  iy = data[:, 1].astype(int)
+  val = data[:, 2]
+
+  nx = ix.max()
+  ny = iy.max()
+
+  field = np.zeros((ny, nx))
+
+  # iy -> rows, ix -> columns
+  field[iy-1, ix-1] = val
+
+  return field
+
+def save_plot(
+    field,
+    cmap,
+    title,
+    outfile,
+    vmin,
+    vmax,
+    tickformat=None
+):
+
+  # Fixed figure size
+  fig, ax = plt.subplots(figsize=(8, 6))
+
+  im = ax.imshow(
+      field,
+      origin="lower",
+      cmap=cmap,
+      aspect="equal",
+      vmin=vmin,
+      vmax=vmax
+  )
+
+  ax.set_title(title)
+  ax.set_xlabel("x")
+  ax.set_ylabel("y")
+
+  # Horizontal colorbar on top
+  cbar = fig.colorbar(
+      im,
+      ax=ax,
+      orientation="horizontal",
+      location="top",
+      pad=0.08
+  )
+
+  cbar.ax.xaxis.set_ticks_position("top")
+  cbar.ax.xaxis.set_label_position("top")
+
+  # Optional tick formatting
+  if tickformat is not None:
+    ticks = np.linspace(vmin, vmax, 11)
+    cbar.set_ticks(ticks)
+    cbar.ax.xaxis.set_major_formatter(
+        FormatStrFormatter(tickformat)
+    )
+
+  # Fixed layout margins
+  fig.subplots_adjust(
+      left=0.10,
+      right=0.95,
+      bottom=0.10,
+      top=0.88
+  )
+
+  # Fixed pixel dimensions:
+  # width  = 8 * 300 = 2400 px
+  # height = 6 * 300 = 1800 px
+  plt.savefig(outfile, dpi=300)
+
+  plt.close(fig)
+
+
+def main():
+
+  u_files = sorted(DATA_DIR.glob("u_*.dat"))
+
+  if not u_files:
+    print("No u_*.dat files found in data/")
+    return
+
+  steps = [f.stem.split("_")[1] for f in u_files]
+
+  # --------------------------------------------------
+  # FIRST PASS:
+  # compute global min/max for velocity and density
+  # --------------------------------------------------
+
+  u_min = np.inf
+  u_max = -np.inf
+
+  v_min = np.inf
+  v_max = -np.inf
+
+  vel_min = np.inf
+  vel_max = -np.inf
+
+  K_min = np.inf
+  K_max = -np.inf
+
+  rho_min = 0.#np.inf
+  rho_max = -np.inf
+
+  print("Computing global limits...")
+
+  for step in steps:
+      
+    u = load_field(DATA_DIR / f"u_{step}.dat")
+    v = load_field(DATA_DIR / f"v_{step}.dat")
+    K = load_field(DATA_DIR / f"K_{step}.dat")
+    rho = load_field(DATA_DIR / f"rho_{step}.dat")
+
+    vel = np.sqrt(u**2 + v**2)
+
+    u_min = min(u_min, u.min())
+    u_max = max(u_max, u.max())
+
+    v_min = min(v_min, v.min())
+    v_max = max(v_max, v.max())
+
+    vel_min = min(vel_min, vel.min())
+    vel_max = max(vel_max, vel.max())
+
+    K_min = min(K_min, K.min())
+    K_max = max(K_max, K.max())
+
+    rho_min = min(rho_min, rho.min())
+    rho_max = max(rho_max, rho.max())
+
+    del u, v, K, rho, vel
+    gc.collect()
+
+  print(f"Velocity limits : {vel_min:.6e} -> {vel_max:.6e}")
+  print(f"Density limits  : {rho_min:.6e} -> {rho_max:.6e}")
+
+  # --------------------------------------------------
+  # SECOND PASS:
+  # generate plots with fixed limits
+  # --------------------------------------------------
+
+  print("Generating plots...")
+
+  for step in steps:
+
+    time = int(step)
+
+    print(f"Processing timestep {step}")
+
+    u = load_field(DATA_DIR / f"u_{step}.dat")
+    v = load_field(DATA_DIR / f"v_{step}.dat")
+    K = load_field(DATA_DIR / f"K_{step}.dat")
+    rho = load_field(DATA_DIR / f"rho_{step}.dat")
+
+    vel = np.sqrt(u**2 + v**2)
+
+    # u plot
+    save_plot(
+        u,
+        cmap="seismic",
+        title=f"u (t = {time})",
+        outfile=POST_DIR / f"u_{step}.png",
+        vmin=u_min,
+        vmax=u_max
+    )
+
+    # v plot
+    save_plot(
+        v,
+        cmap="seismic",
+        title=f"v (t = {time})",
+        outfile=POST_DIR / f"v_{step}.png",
+        vmin=v_min,
+        vmax=v_max
+    )
+
+    # Velocity magnitude plot
+    save_plot(
+        vel,
+        cmap="Reds",
+        title=f"Velocity Magnitude (t = {time})",
+        outfile=POST_DIR / f"vel_{step}.png",
+        vmin=vel_min,
+        vmax=vel_max
+    )
+
+    # Kinetic energy plot
+    save_plot(
+        K,
+        cmap="Greens",
+        title=f"Kinetic Energy (t = {time})",
+        outfile=POST_DIR / f"K_{step}.png",
+        vmin=K_min,
+        vmax=K_max
+    )
+
+    # Density plot
+    save_plot(
+        rho,
+        cmap="Blues",
+        title=f"Density (t = {time})",
+        outfile=POST_DIR / f"rho_{step}.png",
+        vmin=rho_min,
+        vmax=rho_max,
+        tickformat="%.1f"
+    )
+
+    del u, v, K, rho, vel
+    gc.collect()
+
+  print("All plots saved in post/")
+
+if __name__ == "__main__":
+  main()

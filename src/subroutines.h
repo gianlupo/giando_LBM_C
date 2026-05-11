@@ -2,6 +2,11 @@ void initialize(double rho[NX][NY],
                 double u[NX][NY],
                 double v[NX][NY]);
 
+void compute_force(double u[NX][NY],
+                   double v[NX][NY],
+                   double fx[NX][NY],
+                   double fy[NX][NY]);
+
 void equilibrium(double rho[NX][NY],
                  double u[NX][NY],
                  double v[NX][NY],
@@ -11,12 +16,21 @@ void stream(double f[Q][NX][NY],
             double fstar[Q][NX][NY]);
 
 void moments(double fstar[Q][NX][NY],
+             double fx[NX][NY],
+             double fy[NX][NY],
              double rho[NX][NY],
              double u[NX][NY],
              double v[NX][NY]);
 
+void guo(double fx[NX][NY],
+         double fy[NX][NY],
+         double u[NX][NY],
+         double v[NX][NY],
+         double fguo[Q][NX][NY]);
+
 void collide(double fstar[Q][NX][NY],
              double feq[Q][NX][NY],
+             double fguo[Q][NX][NY],
              double f[Q][NX][NY]);
 
 void periodic_bc(double f[Q][NX][NY],

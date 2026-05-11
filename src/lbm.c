@@ -37,6 +37,8 @@ void stream(double f[Q][NX][NY],
 }
 
 void moments(double fstar[Q][NX][NY],
+             double fx[NX][NY],
+             double fy[NX][NY],
              double rho[NX][NY],
              double u[NX][NY],
              double v[NX][NY])
@@ -58,14 +60,39 @@ void moments(double fstar[Q][NX][NY],
       }
 
       rho[i][j] = den;
-      u[i][j] = momx / den;
-      v[i][j] = momy / den;
+      u[i][j] = (momx + 0.5 * fx[i][j]) / den;
+      v[i][j] = (momy + 0.5 * fy[i][j]) / den;
+    }
+  }
+}
+
+void guo(double fx[NX][NY],
+         double fy[NX][NY],
+         double u[NX][NY],
+         double v[NX][NY],
+         double fguo[Q][NX][NY])
+{
+  double taui = 1.0 / TAU;
+
+  for (int q = 0; q < Q; ++q) {
+    for (int j = 0; j < NY; ++j) {
+      for (int i = 0; i < NX; ++i) {
+
+        double cu = c[q][0] * u[i][j]  + c[q][1] * v[i][j];
+
+        double cf = c[q][0] * fx[i][j] + c[q][1] * fy[i][j];
+
+        double uf = u[i][j] * fx[i][j] + v[i][j] * fy[i][j];
+
+        fguo[q][i][j] = w[q] * (1.0 - 0.5 * taui) * (3.0 * cf - 3.0 * uf + 9.0 * cu * cf);
+      }
     }
   }
 }
 
 void collide(double fstar[Q][NX][NY],
              double feq[Q][NX][NY],
+             double fguo[Q][NX][NY],
              double f[Q][NX][NY])
 {
   double taui = 1.0 / TAU;
@@ -75,7 +102,7 @@ void collide(double fstar[Q][NX][NY],
     for (int j = 0; j < NY; ++j) {
       for (int i = 0; i < NX; ++i) {
 
-        f[q][i][j] = fstar[q][i][j] - taui * (fstar[q][i][j] - feq[q][i][j]);
+        f[q][i][j] = fstar[q][i][j] - taui * (fstar[q][i][j] - feq[q][i][j]) + fguo[q][i][j];
       }
     }
   }

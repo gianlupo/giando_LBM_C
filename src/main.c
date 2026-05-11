@@ -14,18 +14,23 @@ int main(void)
   static double rho[NX][NY];
   static double u[NX][NY];
   static double v[NX][NY];
+  static double fx[NX][NY];
+  static double fy[NX][NY];
 
   static double K[NX][NY];
 
   static double f[Q][NX][NY];
   static double fstar[Q][NX][NY];
   static double feq[Q][NX][NY];
+  static double fguo[Q][NX][NY];
 
   (void)system("mkdir -p data");
 
   // initialize
 
   initialize(rho, u, v);
+
+  compute_force(u, v, fx, fy);
 
   equilibrium(rho, u, v, f);
 
@@ -56,11 +61,15 @@ int main(void)
 
     stream(f, fstar);
 
-    moments(fstar, rho, u, v);
+    moments(fstar, fx, fy, rho, u, v);
+
+    compute_force(u, v, fx, fy);
+
+    guo(fx, fy, u, v, fguo);
 
     equilibrium(rho, u, v, feq);
 
-    collide(fstar, feq, f);
+    collide(fstar, feq, fguo, f);
 
     // write time series
 

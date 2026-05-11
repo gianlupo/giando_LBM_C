@@ -15,7 +15,7 @@ def load_field(filename):
 
   # ---------------------------
   # Load field stored as:
-  #     ix iy value
+  #     ix iy iz value
   # 
   # and reconstruct a 2D array.
   # ---------------------------
@@ -24,15 +24,17 @@ def load_field(filename):
 
   ix = data[:, 0].astype(int)
   iy = data[:, 1].astype(int)
-  val = data[:, 2]
+  iz = data[:, 2].astype(int)
+  val = data[:, 3]
 
   nx = ix.max()
   ny = iy.max()
+  nz = iz.max()
 
-  field = np.zeros((ny, nx))
+  field = np.zeros((nz, nx))
 
-  # iy -> rows, ix -> columns
-  field[iy-1, ix-1] = val
+  # iz -> rows, ix -> columns
+  field[iz-1, ix-1] = val
 
   return field
 
@@ -60,7 +62,7 @@ def save_plot(
 
   ax.set_title(title)
   ax.set_xlabel("x")
-  ax.set_ylabel("y")
+  ax.set_ylabel("z")
 
   # Horizontal colorbar on top
   cbar = fig.colorbar(
@@ -100,13 +102,13 @@ def save_plot(
 
 def main():
 
-  u_files = sorted(DATA_DIR.glob("u_*.dat"))
+  u_files = sorted(DATA_DIR.glob("u_slice_*.dat"))
 
   if not u_files:
-    print("No u_*.dat files found in data/")
+    print("No u_slice_*.dat files found in data/")
     return
 
-  steps = [f.stem.split("_")[1] for f in u_files]
+  steps = [f.stem.split("_slice_")[1] for f in u_files]
 
   # --------------------------------------------------
   # FIRST PASS:
@@ -118,6 +120,9 @@ def main():
 
   v_min = np.inf
   v_max = -np.inf
+
+  w_min = np.inf
+  w_max = -np.inf
 
   vel_min = np.inf
   vel_max = -np.inf
@@ -132,18 +137,22 @@ def main():
 
   for step in steps:
       
-    u = load_field(DATA_DIR / f"u_{step}.dat")
-    v = load_field(DATA_DIR / f"v_{step}.dat")
-    K = load_field(DATA_DIR / f"K_{step}.dat")
-    rho = load_field(DATA_DIR / f"rho_{step}.dat")
+    u = load_field(DATA_DIR / f"u_slice_{step}.dat")
+    v = load_field(DATA_DIR / f"v_slice_{step}.dat")
+    w = load_field(DATA_DIR / f"w_slice_{step}.dat")
+    K = load_field(DATA_DIR / f"K_slice_{step}.dat")
+    rho = load_field(DATA_DIR / f"rho_slice_{step}.dat")
 
-    vel = np.sqrt(u**2 + v**2)
+    vel = np.sqrt(u**2 + v**2 + w**2)
 
     u_min = min(u_min, u.min())
     u_max = max(u_max, u.max())
 
     v_min = min(v_min, v.min())
     v_max = max(v_max, v.max())
+
+    w_min = min(w_min, w.min())
+    w_max = max(w_max, w.max())
 
     vel_min = min(vel_min, vel.min())
     vel_max = max(vel_max, vel.max())
@@ -154,7 +163,7 @@ def main():
     rho_min = min(rho_min, rho.min())
     rho_max = max(rho_max, rho.max())
 
-    del u, v, K, rho, vel
+    del u, v, w, K, rho, vel
     gc.collect()
 
   print(f"Velocity limits : {vel_min:.6e} -> {vel_max:.6e}")
@@ -173,12 +182,13 @@ def main():
 
     print(f"Processing timestep {step}")
 
-    u = load_field(DATA_DIR / f"u_{step}.dat")
-    v = load_field(DATA_DIR / f"v_{step}.dat")
-    K = load_field(DATA_DIR / f"K_{step}.dat")
-    rho = load_field(DATA_DIR / f"rho_{step}.dat")
+    u = load_field(DATA_DIR / f"u_slice_{step}.dat")
+    v = load_field(DATA_DIR / f"v_slice_{step}.dat")
+    w = load_field(DATA_DIR / f"w_slice_{step}.dat")
+    K = load_field(DATA_DIR / f"K_slice_{step}.dat")
+    rho = load_field(DATA_DIR / f"rho_slice_{step}.dat")
 
-    vel = np.sqrt(u**2 + v**2)
+    vel = np.sqrt(u**2 + v**2 + w**2)
 
     # u plot
     save_plot(
@@ -198,6 +208,16 @@ def main():
         outfile=POST_DIR / f"v_{step}.png",
         vmin=v_min,
         vmax=v_max
+    )
+
+    # w plot
+    save_plot(
+        w,
+        cmap="seismic",
+        title=f"w (t = {time})",
+        outfile=POST_DIR / f"w_{step}.png",
+        vmin=w_min,
+        vmax=w_max
     )
 
     # Velocity magnitude plot
@@ -231,7 +251,7 @@ def main():
         tickformat="%.1f"
     )
 
-    del u, v, K, rho, vel
+    del u, v, w, K, rho, vel
     gc.collect()
 
   print("All plots saved in post/")

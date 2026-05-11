@@ -1,43 +1,51 @@
-void initialize(double rho[NX][NY],
-                double u[NX][NY],
-                double v[NX][NY]);
+void initialize(double rho[NX][NY][NZ],
+                double u[NX][NY][NZ],
+                double v[NX][NY][NZ],
+                double w[NX][NY][NZ]);
 
-void compute_force(double u[NX][NY],
-                   double v[NX][NY],
-                   double fx[NX][NY],
-                   double fy[NX][NY]);
+void compute_force(double u[NX][NY][NZ],
+                   double v[NX][NY][NZ],
+                   double w[NX][NY][NZ],
+                   double fx[NX][NY][NZ],
+                   double fy[NX][NY][NZ],
+                   double fz[NX][NY][NZ]);
 
-void equilibrium(double rho[NX][NY],
-                 double u[NX][NY],
-                 double v[NX][NY],
-                 double feq[Q][NX][NY]);
+void equilibrium(double rho[NX][NY][NZ],
+                 double u[NX][NY][NZ],
+                 double v[NX][NY][NZ],
+                 double w[NX][NY][NZ],
+                 double feq[Q][NX][NY][NZ]);
 
-void stream(double f[Q][NX][NY],
-            double fstar[Q][NX][NY]);
+void stream(double f[Q][NX][NY][NZ],
+            double fstar[Q][NX][NY][NZ]);
 
-void moments(double fstar[Q][NX][NY],
-             double fx[NX][NY],
-             double fy[NX][NY],
-             double rho[NX][NY],
-             double u[NX][NY],
-             double v[NX][NY]);
+void moments(double fstar[Q][NX][NY][NZ],
+             double fx[NX][NY][NZ],
+             double fy[NX][NY][NZ],
+             double fz[NX][NY][NZ],
+             double rho[NX][NY][NZ],
+             double u[NX][NY][NZ],
+             double v[NX][NY][NZ],
+             double w[NX][NY][NZ]);
 
-void guo(double fx[NX][NY],
-         double fy[NX][NY],
-         double u[NX][NY],
-         double v[NX][NY],
-         double fguo[Q][NX][NY]);
+void guo(double fx[NX][NY][NZ],
+         double fy[NX][NY][NZ],
+         double fz[NX][NY][NZ],
+         double u[NX][NY][NZ],
+         double v[NX][NY][NZ],
+         double w[NX][NY][NZ],
+         double fguo[Q][NX][NY][NZ]);
 
-void collide(double fstar[Q][NX][NY],
-             double feq[Q][NX][NY],
-             double fguo[Q][NX][NY],
-             double f[Q][NX][NY]);
+void collide(double fstar[Q][NX][NY][NZ],
+             double feq[Q][NX][NY][NZ],
+             double fguo[Q][NX][NY][NZ],
+             double f[Q][NX][NY][NZ]);
 
-void periodic_bc(double f[Q][NX][NY],
-                 double fstar[Q][NX][NY]);
+void periodic_bc(double f[Q][NX][NY][NZ],
+                 double fstar[Q][NX][NY][NZ]);
 
 void write_field(int iter,
-                 double field[NX][NY],
+                 double field[NX][NY][NZ],
                  const char* name);
 
 void write_0d(int iter,
@@ -45,13 +53,21 @@ void write_0d(int iter,
               double var,
               const char* name);
 
-double max_u(double u[NX][NY]);
+void write_field_slice(int iter,
+                       double slice[NX][NY][NZ],
+                       int direction,
+                       int position,
+                       const char* name);
 
-double max_kinetic(double rho[NX][NY],
-                   double u[NX][NY],
-                   double v[NX][NY]);
+double max_u(double u[NX][NY][NZ]);
 
-void compute_kinetic(double rho[NX][NY],
-                     double u[NX][NY],
-                     double v[NX][NY],
-                     double K[NX][NY]);
+double max_kinetic(double rho[NX][NY][NZ],
+                   double u[NX][NY][NZ],
+                   double v[NX][NY][NZ],
+                   double w[NX][NY][NZ]);
+
+void compute_kinetic(double rho[NX][NY][NZ],
+                     double u[NX][NY][NZ],
+                     double v[NX][NY][NZ],
+                     double w[NX][NY][NZ],
+                     double Kin[NX][NY][NZ]);

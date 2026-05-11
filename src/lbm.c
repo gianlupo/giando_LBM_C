@@ -1,110 +1,130 @@
 #include "param.h"
 
-void equilibrium(double rho[NX][NY],
-                 double u[NX][NY],
-                 double v[NX][NY],
-                 double feq[Q][NX][NY])
+void equilibrium(double rho[NX][NY][NZ],
+                 double u[NX][NY][NZ],
+                 double v[NX][NY][NZ],
+                 double w[NX][NY][NZ],
+                 double feq[Q][NX][NY][NZ])
 {
   for (int q = 0; q < Q; ++q) {
+    for (int k = 0; k < NZ; ++k) {
+      for (int j = 0; j < NY; ++j) {
+        for (int i = 0; i < NX; ++i) {
+
+          double cu = c[q][0]    * u[i][j][k] + c[q][1]    * v[i][j][k] + c[q][2]    * w[i][j][k];
+
+          double uu = u[i][j][k] * u[i][j][k] + v[i][j][k] * v[i][j][k] + w[i][j][k] * w[i][j][k];
+
+          feq[q][i][j][k] = weights[q] * rho[i][j][k] * (1.0 + 3.0 * cu + 4.5 * cu * cu - 1.5 * uu);
+        }
+      }
+    }
+  }
+}
+
+void stream(double f[Q][NX][NY][NZ],
+            double fstar[Q][NX][NY][NZ])
+{
+  for (int q = 0; q < Q; ++q) {
+
+    for (int k = 1; k < NZ - 1; ++k) {
+      for (int j = 1; j < NY - 1; ++j) {
+        for (int i = 1; i < NX - 1; ++i) {
+
+          int istar = i - c[q][0];
+          int jstar = j - c[q][1];
+          int kstar = k - c[q][2];
+
+          fstar[q][i][j][k] = f[q][istar][jstar][kstar];
+        }
+      }
+    }
+  }
+}
+
+void moments(double fstar[Q][NX][NY][NZ],
+             double fx[NX][NY][NZ],
+             double fy[NX][NY][NZ],
+             double fz[NX][NY][NZ],
+             double rho[NX][NY][NZ],
+             double u[NX][NY][NZ],
+             double v[NX][NY][NZ],
+             double w[NX][NY][NZ])
+{
+  for (int k = 0; k < NZ; ++k) {
     for (int j = 0; j < NY; ++j) {
       for (int i = 0; i < NX; ++i) {
 
-        double cu = c[q][0] * u[i][j] + c[q][1] * v[i][j];
+        double den = 0.0;
+        double momx = 0.0;
+        double momy = 0.0;
+        double momz = 0.0;
 
-        double uu = u[i][j] * u[i][j] + v[i][j] * v[i][j];
+        for (int q = 0; q < Q; ++q) {
 
-        feq[q][i][j] = w[q] * rho[i][j] * (1.0 + 3.0 * cu + 4.5 * cu * cu - 1.5 * uu);
+          den  += fstar[q][i][j][k];
+
+          momx += c[q][0] * fstar[q][i][j][k];
+
+          momy += c[q][1] * fstar[q][i][j][k];
+
+          momz += c[q][2] * fstar[q][i][j][k];
+        }
+
+        rho[i][j][k] = den;
+        u[i][j][k] = (momx + 0.5 * fx[i][j][k]) / den;
+        v[i][j][k] = (momy + 0.5 * fy[i][j][k]) / den;
+        w[i][j][k] = (momz + 0.5 * fz[i][j][k]) / den;
       }
     }
   }
 }
 
-void stream(double f[Q][NX][NY],
-            double fstar[Q][NX][NY])
-{
-  for (int q = 0; q < Q; ++q) {
-
-    for (int j = 1; j < NY - 1; ++j) {
-      for (int i = 1; i < NX - 1; ++i) {
-
-        int istar = i - c[q][0];
-        int jstar = j - c[q][1];
-
-        fstar[q][i][j] = f[q][istar][jstar];
-      }
-    }
-  }
-}
-
-void moments(double fstar[Q][NX][NY],
-             double fx[NX][NY],
-             double fy[NX][NY],
-             double rho[NX][NY],
-             double u[NX][NY],
-             double v[NX][NY])
-{
-  for (int j = 0; j < NY; ++j) {
-    for (int i = 0; i < NX; ++i) {
-
-      double den = 0.0;
-      double momx = 0.0;
-      double momy = 0.0;
-
-      for (int q = 0; q < Q; ++q) {
-
-        den  += fstar[q][i][j];
-
-        momx += c[q][0] * fstar[q][i][j];
-
-        momy += c[q][1] * fstar[q][i][j];
-      }
-
-      rho[i][j] = den;
-      u[i][j] = (momx + 0.5 * fx[i][j]) / den;
-      v[i][j] = (momy + 0.5 * fy[i][j]) / den;
-    }
-  }
-}
-
-void guo(double fx[NX][NY],
-         double fy[NX][NY],
-         double u[NX][NY],
-         double v[NX][NY],
-         double fguo[Q][NX][NY])
+void guo(double fx[NX][NY][NZ],
+         double fy[NX][NY][NZ],
+         double fz[NX][NY][NZ],
+         double u[NX][NY][NZ],
+         double v[NX][NY][NZ],
+         double w[NX][NY][NZ],
+         double fguo[Q][NX][NY][NZ])
 {
   double taui = 1.0 / TAU;
 
   // Guo et al. Physical Review E, Vol. 65, 046308 (2002)
 
   for (int q = 0; q < Q; ++q) {
-    for (int j = 0; j < NY; ++j) {
-      for (int i = 0; i < NX; ++i) {
+    for (int k = 0; k < NZ; ++k) {
+      for (int j = 0; j < NY; ++j) {
+        for (int i = 0; i < NX; ++i) {
 
-        double cu = c[q][0] * u[i][j]  + c[q][1] * v[i][j];
+          double cu = c[q][0]    * u[i][j][k]  + c[q][1]    * v[i][j][k]  + c[q][2]    * w[i][j][k];
 
-        double cf = c[q][0] * fx[i][j] + c[q][1] * fy[i][j];
+          double cf = c[q][0]    * fx[i][j][k] + c[q][1]    * fy[i][j][k] + c[q][2]    * fz[i][j][k];
 
-        double uf = u[i][j] * fx[i][j] + v[i][j] * fy[i][j];
+          double uf = u[i][j][k] * fx[i][j][k] + v[i][j][k] * fy[i][j][k] + w[i][j][k] * fz[i][j][k];
 
-        fguo[q][i][j] = w[q] * (1.0 - 0.5 * taui) * (3.0 * cf - 3.0 * uf + 9.0 * cu * cf);
+          fguo[q][i][j][k] = weights[q] * (1.0 - 0.5 * taui) * (3.0 * cf - 3.0 * uf + 9.0 * cu * cf);
+        }
       }
     }
   }
 }
 
-void collide(double fstar[Q][NX][NY],
-             double feq[Q][NX][NY],
-             double fguo[Q][NX][NY],
-             double f[Q][NX][NY])
+void collide(double fstar[Q][NX][NY][NZ],
+             double feq[Q][NX][NY][NZ],
+             double fguo[Q][NX][NY][NZ],
+             double f[Q][NX][NY][NZ])
 {
   double taui = 1.0 / TAU;
 
   for (int q = 0; q < Q; ++q) {
 
-    for (int j = 0; j < NY; ++j) {
-      for (int i = 0; i < NX; ++i) {
+    for (int k = 0; k < NZ; ++k) {
+      for (int j = 0; j < NY; ++j) {
+        for (int i = 0; i < NX; ++i) {
 
-        f[q][i][j] = fstar[q][i][j] - taui * (fstar[q][i][j] - feq[q][i][j]) + fguo[q][i][j];
+          f[q][i][j][k] = fstar[q][i][j][k] - taui * (fstar[q][i][j][k] - feq[q][i][j][k]) + fguo[q][i][j][k];
+        }
       }
     }
   }

@@ -30,14 +30,14 @@ def read_iout():
     for line in f:
       line = line.strip()
 
-      if "#define IOUT" in line:
+      if "#define IOUT2D" in line:
         tokens = line.replace("#define", "").split()
 
         for i, tok in enumerate(tokens):
-          if tok == "IOUT":
+          if tok == "IOUT2D":
             return int(tokens[i+1])
 
-  raise ValueError("IOUT not found in src/param.h")
+  raise ValueError("IOUT2D not found in src/param.h")
 
 # -------------------------------------------------------------------
 # Fixed output image size (same for every PNG)

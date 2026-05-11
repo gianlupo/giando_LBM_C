@@ -74,6 +74,8 @@ void guo(double fx[NX][NY],
 {
   double taui = 1.0 / TAU;
 
+  // Guo et al. Physical Review E, Vol. 65, 046308 (2002)
+
   for (int q = 0; q < Q; ++q) {
     for (int j = 0; j < NY; ++j) {
       for (int i = 0; i < NX; ++i) {

@@ -1,11 +1,15 @@
 #ifndef PARAM_H
 #define PARAM_H
 
+// lattice parameters
 #define NX 200
 #define NY 100
 #define Q 9
 
+// maximum iterations
 #define MAXITER 5000
+
+// output every IOUT iterations
 #define IOUT 100
 
 extern const double PI;

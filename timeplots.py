@@ -30,7 +30,7 @@ def read_iout():
     for line in f:
       line = line.strip()
 
-      if "IOUT" in line:
+      if "#define IOUT" in line:
         tokens = line.replace("#define", "").split()
 
         for i, tok in enumerate(tokens):

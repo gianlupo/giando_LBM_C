@@ -29,5 +29,10 @@ extern const double DT_PHYS;
 
 extern const double weights[Q];
 extern const int c[Q][3];
+extern const int oppq[Q];
+extern const int qo[6][5];
+extern const int qi[6][14];
+
+extern const char bc[6];
 
 #endif

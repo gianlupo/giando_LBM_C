@@ -1,7 +1,8 @@
 #include <math.h>
 #include "param.h"
 
-void compute_force(double u[NX][NY][NZ],
+void compute_force(double rho[NX][NY][NZ],
+                   double u[NX][NY][NZ],
                    double v[NX][NY][NZ],
                    double w[NX][NY][NZ],
                    double fx[NX][NY][NZ],
@@ -16,7 +17,8 @@ void compute_force(double u[NX][NY][NZ],
     for (int j = 0; j < NY; ++j) {
       for (int i = 0; i < NX; ++i) {
 
-        fx[i][j][k] = 0.0;//nu * kappa * kappa * u[i][j][k];
+        //fx[i][j][k] = 0.0;//nu * kappa * kappa * u[i][j][k];
+        fx[i][j][k] = 8.0 * rho[i][j][k] * nu * U0 / NZ / NZ;
         fy[i][j][k] = 0.0;
         fz[i][j][k] = 0.0;
       }

@@ -13,10 +13,12 @@ void initialize(double rho[NX][NY][NZ],
     for (int j = 0; j < NY; ++j) {
       for (int i = 0; i < NX; ++i) {
 
-        double z = k + 0.5;
+        //double z = k + 0.5;
+        double z = (k + 0.5) / NZ;
 
         rho[i][j][k] = 1.0;
-        u[i][j][k] = U0 * sin(kappa * z);
+        //u[i][j][k] = U0 * sin(kappa * z);
+        u[i][j][k] = 4.0 * U0 * z * (1.0 - z);
         v[i][j][k] = 0.0;
         w[i][j][k] = 0.0;
       }

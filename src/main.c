@@ -32,7 +32,7 @@ int main(void)
 
   initialize(rho, u, v, w);
 
-  compute_force(u, v, w, fx, fy, fz);
+  compute_force(rho, u, v, w, fx, fy, fz);
 
   equilibrium(rho, u, v, w, f);
 
@@ -66,13 +66,14 @@ int main(void)
 
   for (int iter = 1; iter <= MAXITER; ++iter) {
 
-    periodic_bc(f, fstar);
+    //triperiodic_bc(f, fstar);
+    boundary(f, fstar);
 
     stream(f, fstar);
 
     moments(fstar, fx, fy, fz, rho, u, v, w);
 
-    compute_force(u, v, w, fx, fy, fz);
+    compute_force(rho, u, v, w, fx, fy, fz);
 
     guo(fx, fy, fz, u, v, w, fguo);
 

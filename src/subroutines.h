@@ -3,7 +3,8 @@ void initialize(double rho[NX][NY][NZ],
                 double v[NX][NY][NZ],
                 double w[NX][NY][NZ]);
 
-void compute_force(double u[NX][NY][NZ],
+void compute_force(double rho[NX][NY][NZ],
+                   double u[NX][NY][NZ],
                    double v[NX][NY][NZ],
                    double w[NX][NY][NZ],
                    double fx[NX][NY][NZ],
@@ -41,8 +42,11 @@ void collide(double fstar[Q][NX][NY][NZ],
              double fguo[Q][NX][NY][NZ],
              double f[Q][NX][NY][NZ]);
 
-void periodic_bc(double f[Q][NX][NY][NZ],
-                 double fstar[Q][NX][NY][NZ]);
+void boundary(double f[Q][NX][NY][NZ],
+              double fstar[Q][NX][NY][NZ]);
+
+void triperiodic_bc(double f[Q][NX][NY][NZ],
+                    double fstar[Q][NX][NY][NZ]);
 
 void write_field(int iter,
                  double field[NX][NY][NZ],

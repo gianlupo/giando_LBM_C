@@ -1,20 +1,20 @@
 # -------------------------------------------------------------------
 # timeplots.py
 # 
-# Reads all '.time' files from ./data with format:
+# Reads all '.time' files from data with format:
 # 
 #     iteration, time, value
 # 
-# and generates plots of value vs time, saving PNG files into ./post.
+# and generates plots of value vs time, saving PNG files into post.
 # -------------------------------------------------------------------
 
 from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
-SRC_DIR  = Path('./src')
-DATA_DIR = Path('./data')
-POST_DIR = Path('./post')
+SRC_DIR  = Path('../../src')
+DATA_DIR = Path('../../data')
+POST_DIR = Path('../../post')
 
 POST_DIR.mkdir(parents=True, exist_ok=True)
 

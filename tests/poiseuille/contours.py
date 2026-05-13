@@ -6,8 +6,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 
-DATA_DIR = Path("data")
-POST_DIR = Path("post")
+DATA_DIR = Path("../../data")
+POST_DIR = Path("../../post")
 
 POST_DIR.mkdir(exist_ok=True)
 

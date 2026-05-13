@@ -1,11 +1,74 @@
 #include <math.h>
 #include "param.h"
 
-void initialize(double rho[NX][NY][NZ],
+void zero(double rho[NX][NY][NZ],
+          double u[NX][NY][NZ],
+          double v[NX][NY][NZ],
+          double w[NX][NY][NZ])
+{
+
+  for (int k = 0; k < NZ; ++k) {
+    for (int j = 0; j < NY; ++j) {
+      for (int i = 0; i < NX; ++i) {
+
+        rho[i][j][k] = 1.0;
+        u[i][j][k]   = 0.0;
+        v[i][j][k]   = 0.0;
+        w[i][j][k]   = 0.0;
+      }
+    }
+  }
+
+}
+
+void uniform(double rho[NX][NY][NZ],
+             double u[NX][NY][NZ],
+             double v[NX][NY][NZ],
+             double w[NX][NY][NZ])
+{
+
+  for (int k = 0; k < NZ; ++k) {
+    for (int j = 0; j < NY; ++j) {
+      for (int i = 0; i < NX; ++i) {
+
+        rho[i][j][k] = 1.0;
+        u[i][j][k]   = 0.66665*U0;
+        v[i][j][k]   = 0.0;
+        w[i][j][k]   = 0.0;
+      }
+    }
+  }
+
+}
+
+void poiseuille(double rho[NX][NY][NZ],
                 double u[NX][NY][NZ],
                 double v[NX][NY][NZ],
                 double w[NX][NY][NZ])
 {
+
+  for (int k = 0; k < NZ; ++k) {
+    for (int j = 0; j < NY; ++j) {
+      for (int i = 0; i < NX; ++i) {
+
+        double z = (k + 0.5) / NZ;
+
+        rho[i][j][k] = 1.0;
+        u[i][j][k] = 4.0 * U0 * z * (1.0 - z);
+        v[i][j][k] = 0.0;
+        w[i][j][k] = 0.0;
+      }
+    }
+  }
+
+}
+
+void sinewave(double rho[NX][NY][NZ],
+              double u[NX][NY][NZ],
+              double v[NX][NY][NZ],
+              double w[NX][NY][NZ])
+{
+
   double lambda = 1.0 * NZ;
   double kappa = 2.0 * PI / lambda;
 
@@ -13,15 +76,36 @@ void initialize(double rho[NX][NY][NZ],
     for (int j = 0; j < NY; ++j) {
       for (int i = 0; i < NX; ++i) {
 
-        //double z = k + 0.5;
-        double z = (k + 0.5) / NZ;
+        double z = k + 0.5;
 
         rho[i][j][k] = 1.0;
-        //u[i][j][k] = U0 * sin(kappa * z);
-        u[i][j][k] = 4.0 * U0 * z * (1.0 - z);
+        u[i][j][k] = U0 * sin(kappa * z);
         v[i][j][k] = 0.0;
         w[i][j][k] = 0.0;
       }
     }
+  }
+
+}
+
+void initialize(int ic,
+                double rho[NX][NY][NZ],
+                double u[NX][NY][NZ],
+                double v[NX][NY][NZ],
+                double w[NX][NY][NZ])
+{
+  switch (ic) {
+    case 0:
+      zero(rho, u, v, w);
+      break;
+    case 1:
+      uniform(rho, u, v, w);
+      break;
+    case 2:
+      poiseuille(rho, u, v, w);
+      break;
+    case 3:
+      sinewave(rho, u, v, w);
+      break;
   }
 }

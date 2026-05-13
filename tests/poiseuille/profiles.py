@@ -76,7 +76,7 @@ def save_profile_plot(
   ax.set_ylabel("z")
 
   # Legend
-  ax.legend(frameon=False)
+  ax.legend(frameon=False, loc=0)
 
   # Fixed layout margins
   fig.tight_layout()

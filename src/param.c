@@ -18,6 +18,12 @@ const double DZ_PHYS = LZ_PHYS / NZ;
 const double U0_PHYS = U0;
 const double DT_PHYS = DX_PHYS / U0_PHYS;
 
+// initial condition
+const int ic = 2; // 0 = zero
+                  // 1 = uniform streamwise
+                  // 2 = poiseuille
+                  // 3 = sine wave
+
 // D3Q19 weights
 const double weights[Q] = {
                            12.0 / 36.0, // 0

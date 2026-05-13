@@ -1,4 +1,5 @@
-void initialize(double rho[NX][NY][NZ],
+void initialize(int ic,
+                double rho[NX][NY][NZ],
                 double u[NX][NY][NZ],
                 double v[NX][NY][NZ],
                 double w[NX][NY][NZ]);

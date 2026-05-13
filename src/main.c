@@ -30,7 +30,7 @@ int main(void)
 
   // initialize
 
-  initialize(rho, u, v, w);
+  initialize(ic, rho, u, v, w);
 
   compute_force(rho, u, v, w, fx, fy, fz);
 

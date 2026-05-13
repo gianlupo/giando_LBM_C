@@ -8,7 +8,7 @@
 #define Q 19
 
 // maximum iterations
-#define MAXITER 5000
+#define MAXITER 20000
 
 // output every IOUT iterations
 #define IOUT2D 100
@@ -34,5 +34,7 @@ extern const int qo[6][5];
 extern const int qi[6][14];
 
 extern const char bc[6];
+
+extern const int ic;
 
 #endif

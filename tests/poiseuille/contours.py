@@ -130,7 +130,7 @@ def main():
   K_min = np.inf
   K_max = -np.inf
 
-  rho_min = 0.#np.inf
+  rho_min = np.inf#0.
   rho_max = -np.inf
 
   print("Computing global limits...")

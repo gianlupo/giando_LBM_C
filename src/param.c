@@ -6,7 +6,7 @@ const double PI = 3.14159265358979323846;
 const double TAU = 1.0;
 
 // lattice velocity
-const double U0 = 1.0;
+const double U0 = 0.001;
 
 // physical parameters
 const double LX_PHYS = 200.0;
@@ -71,27 +71,27 @@ const int c[Q][3] = {
                                  };
 
 // D3Q19 opposite Q indices
-const int oppq[Q] = {
-                     0 , // opposite of 0
-                     2 , // opposite of 1
-                     1 , // opposite of 2
-                     4 , // opposite of 3
-                     3 , // opposite of 4
-                     6 , // opposite of 5
-                     5 , // opposite of 6
-                     12, // opposite of 7
-                     11, // opposite of 8
-                     14, // opposite of 9
-                     13, // opposite of 10
-                     8 , // opposite of 11
-                     7 , // opposite of 12
-                     10, // opposite of 13
-                     9 , // opposite of 14
-                     18, // opposite of 15
-                     17, // opposite of 16
-                     16, // opposite of 17
-                     15, // opposite of 18
-                       };
+const int opp[Q] = {
+                    0 , // opposite of 0
+                    2 , // opposite of 1
+                    1 , // opposite of 2
+                    4 , // opposite of 3
+                    3 , // opposite of 4
+                    6 , // opposite of 5
+                    5 , // opposite of 6
+                    12, // opposite of 7
+                    11, // opposite of 8
+                    14, // opposite of 9
+                    13, // opposite of 10
+                    8 , // opposite of 11
+                    7 , // opposite of 12
+                    10, // opposite of 13
+                    9 , // opposite of 14
+                    18, // opposite of 15
+                    17, // opposite of 16
+                    16, // opposite of 17
+                    15, // opposite of 18
+                      };
 
 // D3Q19 populations streaming from outside the boundary plane
 const int qo[6][5] =  {
@@ -115,10 +115,20 @@ const int qi[6][14] = {
 
 // boundary conditions
 const char bc[6] = {
-                    'P', // x-normal plane, imin
-                    'P', // x-normal plane, imax
+                    'I', // x-normal plane, imin
+                    'O', // x-normal plane, imax
                     'P', // y-normal plane, jmin
                     'P', // y-normal plane, jmax
                     'W', // z-normal plane, kmin
                     'W'  // z-normal plane, kmax
                        };
+
+// boundary plane (outward) normals
+const int n[6][3] = {
+                     {-1, 0, 0}, // x-normal plane, imin
+                     { 1, 0, 0}, // x-normal plane, imax
+                     { 0,-1, 0}, // y-normal plane, jmin
+                     { 0, 1, 0}, // y-normal plane, jmax
+                     { 0, 0,-1}, // z-normal plane, kmin
+                     { 0, 0, 1}  // z-normal plane, kmax
+                               };

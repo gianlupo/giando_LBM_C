@@ -1,5 +1,11 @@
 #include "param.h"
 
+static int mod(int a, int b)
+{
+  int r = a % b;
+  return (r < 0) ? r + b : r;
+}
+
 void equilibrium(double rho[NX][NY][NZ],
                  double u[NX][NY][NZ],
                  double v[NX][NY][NZ],
@@ -30,10 +36,17 @@ void stream(double f[Q][NX][NY][NZ],
     for (int k = 1; k < NZ - 1; ++k) {
       for (int j = 1; j < NY - 1; ++j) {
         for (int i = 1; i < NX - 1; ++i) {
+    //for (int k = 0; k < NZ; ++k) {
+    //  for (int j = 0; j < NY; ++j) {
+    //    for (int i = 0; i < NX; ++i) {
 
           int istar = i - c[q][0];
           int jstar = j - c[q][1];
           int kstar = k - c[q][2];
+          //int istar, jstar, kstar;
+          //istar = mod(i - c[q][0], NX);
+          //jstar = mod(j - c[q][1], NY);
+          //kstar = mod(k - c[q][2], NZ);
 
           fstar[q][i][j][k] = f[q][istar][jstar][kstar];
         }

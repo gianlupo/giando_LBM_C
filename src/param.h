@@ -8,7 +8,7 @@
 #define Q 19
 
 // maximum iterations
-#define MAXITER 20000
+#define MAXITER 2000
 
 // output every IOUT iterations
 #define IOUT2D 100
@@ -29,9 +29,10 @@ extern const double DT_PHYS;
 
 extern const double weights[Q];
 extern const int c[Q][3];
-extern const int oppq[Q];
+extern const int opp[Q];
 extern const int qo[6][5];
 extern const int qi[6][14];
+extern const int n[6][3];
 
 extern const char bc[6];
 

@@ -18,7 +18,7 @@ void compute_force(double rho[NX][NY][NZ],
       for (int i = 0; i < NX; ++i) {
 
         //fx[i][j][k] = 0.0;//nu * kappa * kappa * u[i][j][k];
-        fx[i][j][k] = 8.0 * rho[i][j][k] * nu * U0 / NZ / NZ;
+        fx[i][j][k] = 0.0;//8.0 * rho[i][j][k] * nu * U0 / NZ / NZ;
         fy[i][j][k] = 0.0;
         fz[i][j][k] = 0.0;
       }

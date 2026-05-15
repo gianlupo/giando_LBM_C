@@ -1,5 +1,5 @@
 /*
- * D2Q9 LBM
+ * D3Q19 LBM
  */
 
 #include <stdio.h>
@@ -66,10 +66,12 @@ int main(void)
 
   for (int iter = 1; iter <= MAXITER; ++iter) {
 
-    //triperiodic_bc(f, fstar);
     boundary(f, fstar);
 
     stream(f, fstar);
+
+    //stream(f, fstar);
+    //boundary(f, fstar);
 
     moments(fstar, fx, fy, fz, rho, u, v, w);
 
@@ -108,6 +110,7 @@ int main(void)
       printf("Iteration = %d / %d\n",
              iter,
              MAXITER);
+      printf("%f\n",max_u(u));
     }
 
     if (iter % IOUT3D == 0) {

@@ -1,6 +1,8 @@
 CC = gcc
 
-CFLAGS = -O3 -Wall
+CFLAGS = -Wall
+RELEASE_FLAGS = -O3
+DEBUG_FLAGS = -g -O0 -DDEBUG
 
 LDFLAGS = -lm
 
@@ -16,7 +18,10 @@ SRC = \
 TARGET = run
 
 all:
-	$(CC) $(CFLAGS) $(SRC) -o $(TARGET) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(RELEASE_FLAGS) $(SRC) -o $(TARGET) $(LDFLAGS)
+
+debug:
+	$(CC) $(CFLAGS) $(DEBUG_FLAGS) $(SRC) -o $(TARGET) $(LDFLAGS)
 
 clean:
 	rm -f $(TARGET)

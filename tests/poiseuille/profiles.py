@@ -50,7 +50,7 @@ def save_profile_plot(
 
   z = np.arange(0,sizez) + 0.5
   za = np.insert(np.append(z,sizez),0,0.)
-  u0 = 0.001
+  u0 = 0.01
 
   WIDTH_PX =  1200
   HEIGHT_PX = 900

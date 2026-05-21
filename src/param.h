@@ -8,7 +8,7 @@
 #define Q 19
 
 // maximum iterations
-#define MAXITER 2000
+#define MAXITER 20000
 
 // output every IOUT iterations
 #define IOUT2D 100

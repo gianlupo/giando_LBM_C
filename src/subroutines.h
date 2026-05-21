@@ -43,8 +43,7 @@ void collide(double fstar[Q][NX][NY][NZ],
              double fguo[Q][NX][NY][NZ],
              double f[Q][NX][NY][NZ]);
 
-void boundary(double f[Q][NX][NY][NZ],
-              double fstar[Q][NX][NY][NZ]);
+void boundary(double fstar[Q][NX][NY][NZ]);
 
 void triperiodic_bc(double f[Q][NX][NY][NZ],
                     double fstar[Q][NX][NY][NZ]);

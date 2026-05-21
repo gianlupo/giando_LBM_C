@@ -66,12 +66,10 @@ int main(void)
 
   for (int iter = 1; iter <= MAXITER; ++iter) {
 
-    boundary(f, fstar);
 
     stream(f, fstar);
 
-    //stream(f, fstar);
-    //boundary(f, fstar);
+    boundary(fstar);
 
     moments(fstar, fx, fy, fz, rho, u, v, w);
 

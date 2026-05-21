@@ -51,9 +51,13 @@ void poiseuille(double rho[NX][NY][NZ],
     for (int j = 0; j < NY; ++j) {
       for (int i = 0; i < NX; ++i) {
 
-        double z = (k + 0.5) / NZ;
+        double x = (double)i;
+        double z = (double)k / (NZ-1);
+        double nu = (TAU - 0.5) / 3.0;
+        double mu = 1.0 * nu;
+        double G = 8 * mu * U0 / NZ / NZ;
 
-        rho[i][j][k] = 1.0;
+        rho[i][j][k] = 1.0 - G * (x - (NX-1));
         u[i][j][k] = 4.0 * U0 * z * (1.0 - z);
         v[i][j][k] = 0.0;
         w[i][j][k] = 0.0;

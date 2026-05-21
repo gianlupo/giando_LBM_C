@@ -6,7 +6,7 @@ const double PI = 3.14159265358979323846;
 const double TAU = 1.0;
 
 // lattice velocity
-const double U0 = 0.001;
+const double U0 = 0.01;
 
 // physical parameters
 const double LX_PHYS = 200.0;
@@ -105,7 +105,7 @@ const int qo[6][5] =  {
 
 // D3Q19 populations streaming from inside the boundary plane
 const int qi[6][14] = {
-                       { 0 ,2, 3, 4, 5, 6,11,12,13,14,15,16,17,18}, // x-normal plane, imin
+                       { 0, 2, 3, 4, 5, 6,11,12,13,14,15,16,17,18}, // x-normal plane, imin
                        { 0, 1, 3, 4, 5, 6, 7, 8, 9,10,15,16,17,18}, // x-normal plane, imax
                        { 0, 1, 2, 4, 5, 6, 8, 9,10,12,13,14,17,18}, // y-normal plane, jmin
                        { 0, 1, 2, 3, 5, 6, 7, 9,10,11,13,14,15,16}, // y-normal plane, jmax

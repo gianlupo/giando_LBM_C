@@ -2,13 +2,13 @@
 #define PARAM_H
 
 // lattice parameters
-#define NX 200
-#define NY 4
-#define NZ 100
+#define NX 500
+#define NY 2
+#define NZ 125
 #define Q 19
 
 // maximum iterations
-#define MAXITER 20000
+#define MAXITER 4000
 
 // output every IOUT iterations
 #define IOUT2D 100
@@ -26,6 +26,11 @@ extern const double DY_PHYS;
 extern const double DZ_PHYS;
 extern const double U0_PHYS;
 extern const double DT_PHYS;
+
+extern const double XC;
+extern const double YC;
+extern const double ZC;
+extern const double OBST_R;
 
 extern const double weights[Q];
 extern const int c[Q][3];

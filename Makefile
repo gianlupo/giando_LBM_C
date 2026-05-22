@@ -8,6 +8,7 @@ LDFLAGS = -lm
 
 SRC = \
     src/main.c \
+    src/obstacle.c \
     src/init.c \
     src/force.c \
     src/lbm.c \

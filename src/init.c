@@ -55,7 +55,7 @@ void poiseuille(double rho[NX][NY][NZ],
         double z = (double)k / (NZ-1);
         double nu = (TAU - 0.5) / 3.0;
         double mu = 1.0 * nu;
-        double G = 8 * mu * U0 / NZ / NZ;
+        double G = 8 * mu * U0 / (NZ - 1.0) / (NZ - 1.0);
 
         rho[i][j][k] = 1.0 - G * (x - (NX-1));
         u[i][j][k] = 4.0 * U0 * z * (1.0 - z);

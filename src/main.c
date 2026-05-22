@@ -26,7 +26,13 @@ int main(void)
   static double feq[Q][NX][NY][NZ];
   static double fguo[Q][NX][NY][NZ];
 
+  static int obst[NX][NY][NZ];
+
   (void)system("mkdir -p data");
+
+  // build obstacle geometry
+
+  build_obstacle(obst);
 
   // initialize
 
@@ -41,7 +47,7 @@ int main(void)
   compute_kinetic(rho, u, v, w, Kin);
 
   write_0d(0, 0.0,
-           max_u(u) * U0_PHYS,
+           max_u(u),
            "u_peak");
 
   write_0d(0, 0.0,
@@ -66,10 +72,23 @@ int main(void)
 
   for (int iter = 1; iter <= MAXITER; ++iter) {
 
+    obst_bounce(obst, f);
 
     stream(f, fstar);
 
+    //if (iter % IOUT2D == 0) {
+    //  for (int q = 0; q < Q; ++q) {
+    //    printf("after stream, image = %d, %d <-> %d, fstar[%d] = %f\n", obst[98][4][64], q, opp[q], q, fstar[q][98][4][64]);
+    //  }
+    //}
+
     boundary(fstar);
+
+    //if (iter % IOUT2D == 0) {
+    //  for (int q = 0; q < Q; ++q) {
+    //    printf("after obst, image = %d, %d <-> %d, fstar[%d] = %f\n", obst[98][4][64], q, opp[q], q, fstar[q][98][4][64]);
+    //  }
+    //}
 
     moments(fstar, fx, fy, fz, rho, u, v, w);
 
@@ -79,13 +98,13 @@ int main(void)
 
     equilibrium(rho, u, v, w, feq);
 
-    collide(fstar, feq, fguo, f);
+    collide(obst, fstar, feq, fguo, f);
 
     // write time series
 
     write_0d(iter,
              iter * DT_PHYS,
-             max_u(u) * U0_PHYS,
+             max_u(u),
              "u_peak");
 
     write_0d(iter,

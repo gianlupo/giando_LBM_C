@@ -1,5 +1,6 @@
 #include "param.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 static int mod(int a, int b)
 {
@@ -742,6 +743,43 @@ void edge_bc(int edge,
       break;
       }
   }
+}
+
+void obst_bounce(int obst[NX][NY][NZ],
+                 double fstar[Q][NX][NY][NZ])
+{
+
+  for (int k = 0; k < NZ; ++k) {
+    for (int j = 0; j < NY; ++j) {
+      for (int i = 0; i < NX; ++i) {
+
+        //if (i == 98 && j == 0 && k == 64) {
+        //  printf("1, 2, before %f %f\n",
+        //         fstar[1][i][j][k],
+        //         fstar[2][j][j][k]);
+        //}
+        double ftmp[Q];
+        for (int q = 0; q < Q; ++q){
+          if (obst[i][j][k] == 1) {
+            ftmp[q] = fstar[opp[q]][i][j][k];
+          }
+        }
+        for (int q = 0; q < Q; ++q){
+          if (obst[i][j][k] == 1) {
+            fstar[q][i][j][k] = ftmp[q];
+          }
+        }
+
+        //if (i == 98 && j == 0 && k == 64) {
+        //  printf("1, 2, after %f %f\n",
+        //         fstar[1][i][j][k],
+        //         fstar[2][j][j][k]);
+        //}
+
+      }
+    }
+  }
+
 }
 
 void boundary(double fstar[Q][NX][NY][NZ])

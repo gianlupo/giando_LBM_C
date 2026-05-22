@@ -83,6 +83,7 @@ void moments(double fstar[Q][NX][NY][NZ],
         u[i][j][k] = (momx + 0.5 * fx[i][j][k]) / den;
         v[i][j][k] = (momy + 0.5 * fy[i][j][k]) / den;
         w[i][j][k] = (momz + 0.5 * fz[i][j][k]) / den;
+
       }
     }
   }
@@ -118,7 +119,8 @@ void guo(double fx[NX][NY][NZ],
   }
 }
 
-void collide(double fstar[Q][NX][NY][NZ],
+void collide(int obst[NX][NY][NZ],
+             double fstar[Q][NX][NY][NZ],
              double feq[Q][NX][NY][NZ],
              double fguo[Q][NX][NY][NZ],
              double f[Q][NX][NY][NZ])
@@ -131,7 +133,9 @@ void collide(double fstar[Q][NX][NY][NZ],
       for (int j = 0; j < NY; ++j) {
         for (int i = 0; i < NX; ++i) {
 
-          f[q][i][j][k] = fstar[q][i][j][k] - taui * (fstar[q][i][j][k] - feq[q][i][j][k]) + fguo[q][i][j][k];
+          if (obst[i][j][k] == 0) {
+            f[q][i][j][k] = fstar[q][i][j][k] - taui * (fstar[q][i][j][k] - feq[q][i][j][k]) + fguo[q][i][j][k];
+          }
         }
       }
     }

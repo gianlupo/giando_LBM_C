@@ -175,7 +175,7 @@ double max_kinetic(double rho[NX][NY][NZ],
     }
   }
 
-  return m * U0_PHYS * U0_PHYS;
+  return m;
 }
 
 void compute_kinetic(double rho[NX][NY][NZ],
@@ -190,7 +190,7 @@ void compute_kinetic(double rho[NX][NY][NZ],
 
         Kin[i][j][k] = 0.5 * rho[i][j][k] * (u[i][j][k] * u[i][j][k] + 
                                              v[i][j][k] * v[i][j][k] +
-                                             w[i][j][k] * w[i][j][k]) * U0_PHYS * U0_PHYS;
+                                             w[i][j][k] * w[i][j][k]);
       }
     }
   }

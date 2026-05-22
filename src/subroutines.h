@@ -1,3 +1,5 @@
+void build_obstacle(int obst[NX][NY][NZ]);
+
 void initialize(int ic,
                 double rho[NX][NY][NZ],
                 double u[NX][NY][NZ],
@@ -38,10 +40,14 @@ void guo(double fx[NX][NY][NZ],
          double w[NX][NY][NZ],
          double fguo[Q][NX][NY][NZ]);
 
-void collide(double fstar[Q][NX][NY][NZ],
+void collide(int obst[NX][NY][NZ],
+             double fstar[Q][NX][NY][NZ],
              double feq[Q][NX][NY][NZ],
              double fguo[Q][NX][NY][NZ],
              double f[Q][NX][NY][NZ]);
+
+void obst_bounce(int obst[NX][NY][NZ],
+                 double fstar[Q][NX][NY][NZ]);
 
 void boundary(double fstar[Q][NX][NY][NZ]);
 

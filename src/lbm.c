@@ -122,8 +122,7 @@ void guo(double fx[NX][NY][NZ],
 void collide(int obst[NX][NY][NZ],
              double fstar[Q][NX][NY][NZ],
              double feq[Q][NX][NY][NZ],
-             double fguo[Q][NX][NY][NZ],
-             double f[Q][NX][NY][NZ])
+             double fguo[Q][NX][NY][NZ])
 {
   double taui = 1.0 / TAU;
 
@@ -134,7 +133,7 @@ void collide(int obst[NX][NY][NZ],
         for (int i = 0; i < NX; ++i) {
 
           if (obst[i][j][k] == 0) {
-            f[q][i][j][k] = fstar[q][i][j][k] - taui * (fstar[q][i][j][k] - feq[q][i][j][k]) + fguo[q][i][j][k];
+            fstar[q][i][j][k] = fstar[q][i][j][k] - taui * (fstar[q][i][j][k] - feq[q][i][j][k]) + fguo[q][i][j][k];
           }
         }
       }

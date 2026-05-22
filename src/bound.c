@@ -746,35 +746,24 @@ void edge_bc(int edge,
 }
 
 void obst_bounce(int obst[NX][NY][NZ],
-                 double fstar[Q][NX][NY][NZ])
+                 double f[Q][NX][NY][NZ])
 {
 
   for (int k = 0; k < NZ; ++k) {
     for (int j = 0; j < NY; ++j) {
       for (int i = 0; i < NX; ++i) {
 
-        //if (i == 98 && j == 0 && k == 64) {
-        //  printf("1, 2, before %f %f\n",
-        //         fstar[1][i][j][k],
-        //         fstar[2][j][j][k]);
-        //}
         double ftmp[Q];
         for (int q = 0; q < Q; ++q){
           if (obst[i][j][k] == 1) {
-            ftmp[q] = fstar[opp[q]][i][j][k];
+            ftmp[q] = f[opp[q]][i][j][k];
           }
         }
         for (int q = 0; q < Q; ++q){
           if (obst[i][j][k] == 1) {
-            fstar[q][i][j][k] = ftmp[q];
+            f[q][i][j][k] = ftmp[q];
           }
         }
-
-        //if (i == 98 && j == 0 && k == 64) {
-        //  printf("1, 2, after %f %f\n",
-        //         fstar[1][i][j][k],
-        //         fstar[2][j][j][k]);
-        //}
 
       }
     }
@@ -793,35 +782,18 @@ void boundary(double fstar[Q][NX][NY][NZ])
   char face_bctype;
   char edge_bctype[2];
 
-  for (int edge = 0; edge < 12; edge++) {
+  //for (int face = 0; face < 6; face++) {
 
-    edge_face[0] = (edge / 4) + 0 + (edge / 10);
-    edge_face[1] =  2 + (edge % 4)+ 2 * (edge / 8) - 2 * (edge / 10);
+  //  face_bctype = bc[face];
+  //  if (face_bctype == 'P') {
 
-    edge_bctype[0] = bc[edge_face[0]];
-    edge_bctype[1] = bc[edge_face[1]];
+  //    for (int m = 0; m < 3; m++){
+  //        face_n[m] = n[face][m];
+  //    }
 
-    for (int m = 0; m < 3; m++){
-        edge_n[0][m] = n[edge_face[0]][m];
-        edge_n[1][m] = n[edge_face[1]][m];
-    }
-
-    edge_bc(edge, edge_face, edge_n, edge_bctype, fstar);
-
-  }
-
-  for (int face = 0; face < 6; face++) {
-
-    face_bctype = bc[face];
-    if (face_bctype == 'W') {
-
-      for (int m = 0; m < 3; m++){
-          face_n[m] = n[face][m];
-      }
-
-      face_bc(face, face_n, face_bctype, fstar);
-    }
-  }
+  //    face_bc(face, face_n, face_bctype, fstar);
+  //  }
+  //}
   for (int face = 0; face < 6; face++) {
 
     face_bctype = bc[face];
@@ -845,6 +817,34 @@ void boundary(double fstar[Q][NX][NY][NZ])
 
       face_bc(face, face_n, face_bctype, fstar);
     }
+  }
+  for (int face = 0; face < 6; face++) {
+
+    face_bctype = bc[face];
+    if (face_bctype == 'W') {
+
+      for (int m = 0; m < 3; m++){
+          face_n[m] = n[face][m];
+      }
+
+      face_bc(face, face_n, face_bctype, fstar);
+    }
+  }
+  for (int edge = 0; edge < 12; edge++) {
+
+    edge_face[0] = (edge / 4) + 0 + (edge / 10);
+    edge_face[1] =  2 + (edge % 4)+ 2 * (edge / 8) - 2 * (edge / 10);
+
+    edge_bctype[0] = bc[edge_face[0]];
+    edge_bctype[1] = bc[edge_face[1]];
+
+    for (int m = 0; m < 3; m++){
+        edge_n[0][m] = n[edge_face[0]][m];
+        edge_n[1][m] = n[edge_face[1]][m];
+    }
+
+    edge_bc(edge, edge_face, edge_n, edge_bctype, fstar);
+
   }
 
 }

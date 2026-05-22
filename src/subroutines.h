@@ -43,16 +43,12 @@ void guo(double fx[NX][NY][NZ],
 void collide(int obst[NX][NY][NZ],
              double fstar[Q][NX][NY][NZ],
              double feq[Q][NX][NY][NZ],
-             double fguo[Q][NX][NY][NZ],
-             double f[Q][NX][NY][NZ]);
+             double fguo[Q][NX][NY][NZ]);
 
 void obst_bounce(int obst[NX][NY][NZ],
-                 double fstar[Q][NX][NY][NZ]);
+                 double f[Q][NX][NY][NZ]);
 
 void boundary(double fstar[Q][NX][NY][NZ]);
-
-void triperiodic_bc(double f[Q][NX][NY][NZ],
-                    double fstar[Q][NX][NY][NZ]);
 
 void write_field(int iter,
                  double field[NX][NY][NZ],

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 #include "param.h"
 #include "subroutines.h"
@@ -76,19 +77,7 @@ int main(void)
 
     stream(f, fstar);
 
-    //if (iter % IOUT2D == 0) {
-    //  for (int q = 0; q < Q; ++q) {
-    //    printf("after stream, image = %d, %d <-> %d, fstar[%d] = %f\n", obst[98][4][64], q, opp[q], q, fstar[q][98][4][64]);
-    //  }
-    //}
-
     boundary(fstar);
-
-    //if (iter % IOUT2D == 0) {
-    //  for (int q = 0; q < Q; ++q) {
-    //    printf("after obst, image = %d, %d <-> %d, fstar[%d] = %f\n", obst[98][4][64], q, opp[q], q, fstar[q][98][4][64]);
-    //  }
-    //}
 
     moments(fstar, fx, fy, fz, rho, u, v, w);
 
@@ -98,7 +87,9 @@ int main(void)
 
     equilibrium(rho, u, v, w, feq);
 
-    collide(obst, fstar, feq, fguo, f);
+    collide(obst, fstar, feq, fguo);
+
+    memcpy(f, fstar, sizeof(double) * Q * NX * NY * NZ);
 
     // write time series
 

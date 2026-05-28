@@ -2,13 +2,13 @@
 #define PARAM_H
 
 // lattice parameters
-#define NX 501
-#define NY 3
-#define NZ 125
+#define NX 801
+#define NY 1
+#define NZ 401
 #define Q 19
 
 // maximum iterations
-#define MAXITER 5000
+#define MAXITER 1000
 
 // output every IOUT iterations
 #define IOUT2D 100

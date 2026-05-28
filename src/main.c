@@ -16,9 +16,9 @@ int main(void)
   static double u[NX][NY][NZ];
   static double v[NX][NY][NZ];
   static double w[NX][NY][NZ];
-  static double fx[NX][NY][NZ];
-  static double fy[NX][NY][NZ];
-  static double fz[NX][NY][NZ];
+  static double fbx[NX][NY][NZ];
+  static double fby[NX][NY][NZ];
+  static double fbz[NX][NY][NZ];
 
   static double Kin[NX][NY][NZ];
 
@@ -28,6 +28,12 @@ int main(void)
   static double fguo[Q][NX][NY][NZ];
 
   static int obst[NX][NY][NZ];
+
+  static double obst_force[3];
+  static double obst_torq[3];
+  static double obst_vel[3];
+  static double obst_omega[3];
+  static double obst_theta[3];
 
   (void)system("mkdir -p data");
 
@@ -39,9 +45,29 @@ int main(void)
 
   initialize(ic, rho, u, v, w);
 
-  compute_force(rho, u, v, w, fx, fy, fz);
+  compute_force(rho, u, v, w, fbx, fby, fbz);
 
   equilibrium(rho, u, v, w, f);
+
+  obst_force[0] = 0.0;
+  obst_force[1] = 0.0;
+  obst_force[2] = 0.0;
+
+  obst_torq[0] = 0.0;
+  obst_torq[1] = 0.0;
+  obst_torq[2] = 0.0;
+
+  obst_vel[0] = 0.0;
+  obst_vel[1] = 0.0;
+  obst_vel[2] = 0.0;
+
+  obst_omega[0] = 0.0;
+  obst_omega[1] = 0.0;
+  obst_omega[2] = 0.0;
+
+  obst_theta[0] = 0.0;
+  obst_theta[1] = 0.0;
+  obst_theta[2] = 0.0;
 
   // write initial condition
 
@@ -79,15 +105,35 @@ int main(void)
 
     boundary(fstar);
 
-    moments(fstar, fx, fy, fz, rho, u, v, w);
+    moments(fstar, obst, fbx, fby, fbz, rho, u, v, w);
 
-    compute_force(rho, u, v, w, fx, fy, fz);
+    compute_force(rho, u, v, w, fbx, fby, fbz);
 
-    guo(fx, fy, fz, u, v, w, fguo);
+    guo(fbx, fby, fbz, u, v, w, fguo);
 
     equilibrium(rho, u, v, w, feq);
 
     collide(obst, fstar, feq, fguo);
+
+    if (iter % 1 == 0) {
+
+      compute_obst_drag(fstar, obst, obst_vel, obst_force);
+
+      write_0d(iter,
+               iter * DT_PHYS,
+               (obst_force[0] / (1.0 * U0 * U0 * OBST_R * (NY))),
+               "C_D");
+
+      write_0d(iter,
+               iter * DT_PHYS,
+               (obst_force[2] / (1.0 * U0 * U0 * OBST_R * (NY))),
+               "C_L");
+    }
+
+
+    compute_obst_torque(obst, fstar, obst_omega, obst_torq);
+
+    move_obstacle(iter, obst, obst_theta, obst_torq, obst_omega);
 
     memcpy(f, fstar, sizeof(double) * Q * NX * NY * NZ);
 
@@ -102,6 +148,11 @@ int main(void)
              iter * DT_PHYS,
              max_kinetic(rho, u, v, w),
              "K_peak");
+
+    write_0d(iter,
+             iter * DT_PHYS,
+             obst_theta[1],
+             "theta");
 
     // write fields
 

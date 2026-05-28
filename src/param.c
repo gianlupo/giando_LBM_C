@@ -3,7 +3,7 @@
 const double PI = 3.14159265358979323846;
 
 // relaxation time
-const double TAU = 0.562;
+const double TAU = 6.5;
 
 // lattice velocity
 const double U0 = 0.1;
@@ -19,10 +19,10 @@ const double U0_PHYS = U0;
 const double DT_PHYS = DX_PHYS / U0_PHYS;
 
 // obstacle parameters
-const double XC = LX_PHYS / 5.0;
+const double XC = 0.25 * LX_PHYS;
 const double YC = LY_PHYS / 2.0;
-const double ZC = (LZ_PHYS / 2.0) + 0.025 * LZ_PHYS;
-const double OBST_R = LZ_PHYS / 10.0;
+const double ZC = (LZ_PHYS / 2.0) + 0.015 * LZ_PHYS;
+const double OBST_R = LZ_PHYS / 40.0;
 
 // initial condition
 const int ic = 2; // 0 = zero

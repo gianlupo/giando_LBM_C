@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include "param.h"
 
+static int mod(int a, int b)
+{
+  int r = a % b;
+  return (r < 0) ? r + b : r;
+}
+
 void write_field(int iter,
                  double field[NX][NY][NZ],
                  const char* name)
@@ -194,4 +200,65 @@ void compute_kinetic(double rho[NX][NY][NZ],
       }
     }
   }
+}
+
+void compute_obst_drag(double fstar[Q][NX][NY][NZ],
+                       int obst[NX][NY][NZ],
+                       double obst_vel[3],
+                       double obst_force[3])
+{
+
+  obst_force[0] = 0.0;
+  obst_force[1] = 0.0;
+  obst_force[2] = 0.0;
+
+  for (int k = 0; k < NZ; ++k) {
+    for (int j = 0; j < NY; ++j) {
+      for (int i = 0; i < NX; ++i) {
+
+        if (obst[i][j][k] == 1) {
+
+          for (int q = 0; q < Q; ++q) {
+
+            int ip;
+            int jp;
+            int kp;
+
+            ip = mod(i + c[q][0], NX);
+            jp = mod(j + c[q][1], NY);
+            kp = mod(k + c[q][2], NZ);
+
+            if (obst[ip][jp][kp] == 0) {
+
+              // if simple bounce back
+              //
+              // called after bounce, this is correct
+              // obst_force[0] += -2.0 * (1.0*f[q][i][j][k])* c[q][0];
+              // obst_force[1] += -2.0 * (1.0*f[q][i][j][k])* c[q][1];
+              // obst_force[2] += -2.0 * (1.0*f[q][i][j][k])* c[q][2];
+
+              // called after bounce this also works
+              // obst_force[0] += -1.0 * (1.0*f[q][i][j][k] + 1.0*f[opp[q]][ip][jp][kp])* c[q][0];
+              // obst_force[1] += -1.0 * (1.0*f[q][i][j][k] + 1.0*f[opp[q]][ip][jp][kp])* c[q][1];
+              // obst_force[2] += -1.0 * (1.0*f[q][i][j][k] + 1.0*f[opp[q]][ip][jp][kp])* c[q][2];
+
+              // called after stream or after collide this is correct
+              // obst_force[0] += -1.0 * (1.0*fstar[opp[q]][i][j][k] + 1.0*f[q][i][j][k])* c[q][0];
+              // obst_force[1] += -1.0 * (1.0*fstar[opp[q]][i][j][k] + 1.0*f[q][i][j][k])* c[q][1];
+              // obst_force[2] += -1.0 * (1.0*fstar[opp[q]][i][j][k] + 1.0*f[q][i][j][k])* c[q][2];
+
+
+              // if Ladd Verberg link bounce back
+
+              obst_force[0] += 1.0 * (fstar[q][i][j][k] - fstar[opp[q]][ip][jp][kp])* c[q][0];
+              obst_force[1] += 1.0 * (fstar[q][i][j][k] - fstar[opp[q]][ip][jp][kp])* c[q][1];
+              obst_force[2] += 1.0 * (fstar[q][i][j][k] - fstar[opp[q]][ip][jp][kp])* c[q][2];
+
+            }
+          }
+        }
+      }
+    }
+  }
+
 }

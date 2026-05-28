@@ -753,15 +753,60 @@ void obst_bounce(int obst[NX][NY][NZ],
     for (int j = 0; j < NY; ++j) {
       for (int i = 0; i < NX; ++i) {
 
+        // simple implementation
+        //
+        //double ftmp[Q];
+        //
+        //for (int q = 0; q < Q; ++q){
+        //  if (obst[i][j][k] == 1) {
+        //    ftmp[q] = f[opp[q]][i][j][k];
+        //  }
+        //}
+        //for (int q = 0; q < Q; ++q){
+        //  if (obst[i][j][k] == 1) {
+        //    f[q][i][j][k] = ftmp[q];
+        //  }
+        //}
+
+        // Ladd and Verberg link-bounce-back
+        //
         double ftmp[Q];
-        for (int q = 0; q < Q; ++q){
+        double ftmp2[Q];
+
+        for (int q = 0; q < Q; ++q) {
+
           if (obst[i][j][k] == 1) {
-            ftmp[q] = f[opp[q]][i][j][k];
+
+            int ip;
+            int jp;
+            int kp;
+
+            ip = mod(i + c[q][0], NX);
+            jp = mod(j + c[q][1], NY);
+            kp = mod(k + c[q][2], NZ);
+
+            if (obst[ip][jp][kp] == 0) {
+              ftmp[q]  = f[opp[q]][i][j][k];
+              ftmp2[q] = f[opp[q]][ip][jp][kp];
+            }
           }
         }
-        for (int q = 0; q < Q; ++q){
+        for (int q = 0; q < Q; ++q) {
+
           if (obst[i][j][k] == 1) {
-            f[q][i][j][k] = ftmp[q];
+
+            int ip;
+            int jp;
+            int kp;
+
+            ip = mod(i + c[q][0], NX);
+            jp = mod(j + c[q][1], NY);
+            kp = mod(k + c[q][2], NZ);
+
+            if (obst[ip][jp][kp] == 0) {
+              f[q][i][j][k]    = ftmp[q];
+              f[q][ip][jp][kp] = ftmp2[q];
+            }
           }
         }
 

@@ -1,15 +1,16 @@
 #include <math.h>
 #include "param.h"
+#include "utils.h"
 
-void zero(double rho[NX][NY][NZ],
-          double u[NX][NY][NZ],
-          double v[NX][NY][NZ],
-          double w[NX][NY][NZ])
+static void zero(double rho[LNX_H][LNY_H][LNZ_H],
+                 double u[LNX_H][LNY_H][LNZ_H],
+                 double v[LNX_H][LNY_H][LNZ_H],
+                 double w[LNX_H][LNY_H][LNZ_H])
 {
 
-  for (int k = 0; k < NZ; ++k) {
-    for (int j = 0; j < NY; ++j) {
-      for (int i = 0; i < NX; ++i) {
+  for (int k = 1; k <= LNZ; ++k) {
+    for (int j = 1; j <= LNY; ++j) {
+      for (int i = 1; i <= LNX; ++i) {
 
         rho[i][j][k] = 1.0;
         u[i][j][k]   = 0.0;
@@ -21,15 +22,15 @@ void zero(double rho[NX][NY][NZ],
 
 }
 
-void uniform(double rho[NX][NY][NZ],
-             double u[NX][NY][NZ],
-             double v[NX][NY][NZ],
-             double w[NX][NY][NZ])
+static void uniform(double rho[LNX_H][LNY_H][LNZ_H],
+                    double u[LNX_H][LNY_H][LNZ_H],
+                    double v[LNX_H][LNY_H][LNZ_H],
+                    double w[LNX_H][LNY_H][LNZ_H])
 {
 
-  for (int k = 0; k < NZ; ++k) {
-    for (int j = 0; j < NY; ++j) {
-      for (int i = 0; i < NX; ++i) {
+  for (int k = 1; k <= LNZ; ++k) {
+    for (int j = 1; j <= LNY; ++j) {
+      for (int i = 1; i <= LNX; ++i) {
 
         rho[i][j][k] = 1.0;
         u[i][j][k]   = 0.66665*U0;
@@ -41,51 +42,52 @@ void uniform(double rho[NX][NY][NZ],
 
 }
 
-void poiseuille(double rho[NX][NY][NZ],
-                double u[NX][NY][NZ],
-                double v[NX][NY][NZ],
-                double w[NX][NY][NZ])
+static void poiseuille(double rho[LNX_H][LNY_H][LNZ_H],
+                       double u[LNX_H][LNY_H][LNZ_H],
+                       double v[LNX_H][LNY_H][LNZ_H],
+                       double w[LNX_H][LNY_H][LNZ_H])
 {
 
-  for (int k = 0; k < NZ; ++k) {
-    for (int j = 0; j < NY; ++j) {
-      for (int i = 0; i < NX; ++i) {
+  double nu = (TAU - 0.5) / 3.0;
+  double mu = 1.0 * nu;
+  double G = 8 * mu * U0 / LZ / LZ;
 
-        double x = (double)i;
-        double z = (double)k / (NZ-1);
-        double nu = (TAU - 0.5) / 3.0;
-        double mu = 1.0 * nu;
-        double G = 8 * mu * U0 / (NZ - 1.0) / (NZ - 1.0);
+  for (int k = 1; k <= LNZ; ++k) {
+    for (int j = 1; j <= LNY; ++j) {
+      for (int i = 1; i <= LNX; ++i) {
 
-        rho[i][j][k] = 1.0 - G * (x - (NX-1));
-        u[i][j][k] = 4.0 * U0 * z * (1.0 - z);
-        v[i][j][k] = 0.0;
-        w[i][j][k] = 0.0;
+        double x = (double)gi(i) / LX;
+
+        double upoi, vpoi, wpoi;
+        poi(i, j, k, &upoi, &vpoi, &wpoi);
+
+        rho[i][j][k] = (bc[0] == 'I' && bc[1] == 'O') ? (1.0 - G * (x - 1.0) * (LX)) : 1.0;
+        u[i][j][k]   = upoi;
+        v[i][j][k]   = vpoi;
+        w[i][j][k]   = wpoi;
       }
     }
   }
 
 }
 
-void sinewave(double rho[NX][NY][NZ],
-              double u[NX][NY][NZ],
-              double v[NX][NY][NZ],
-              double w[NX][NY][NZ])
+static void sinewave(double rho[LNX_H][LNY_H][LNZ_H],
+                     double u[LNX_H][LNY_H][LNZ_H],
+                     double v[LNX_H][LNY_H][LNZ_H],
+                     double w[LNX_H][LNY_H][LNZ_H])
 {
 
-  double lambda = 1.0 * NZ;
-  double kappa = 2.0 * PI / lambda;
+  for (int k = 1; k <= LNZ; ++k) {
+    for (int j = 1; j <= LNY; ++j) {
+      for (int i = 1; i <= LNX; ++i) {
 
-  for (int k = 0; k < NZ; ++k) {
-    for (int j = 0; j < NY; ++j) {
-      for (int i = 0; i < NX; ++i) {
-
-        double z = k + 0.5;
+        double usin, vsin, wsin;
+        sinvel(i, j, k, &usin, &vsin, &wsin);
 
         rho[i][j][k] = 1.0;
-        u[i][j][k] = U0 * sin(kappa * z);
-        v[i][j][k] = 0.0;
-        w[i][j][k] = 0.0;
+        u[i][j][k] = usin;
+        v[i][j][k] = vsin;
+        w[i][j][k] = wsin;
       }
     }
   }
@@ -93,10 +95,10 @@ void sinewave(double rho[NX][NY][NZ],
 }
 
 void initialize(int ic,
-                double rho[NX][NY][NZ],
-                double u[NX][NY][NZ],
-                double v[NX][NY][NZ],
-                double w[NX][NY][NZ])
+                double rho[LNX_H][LNY_H][LNZ_H],
+                double u[LNX_H][LNY_H][LNZ_H],
+                double v[LNX_H][LNY_H][LNZ_H],
+                double w[LNX_H][LNY_H][LNZ_H])
 {
   switch (ic) {
     case 0:

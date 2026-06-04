@@ -1,34 +1,44 @@
 #include "param.h"
 
+// Pi
 const double PI = 3.14159265358979323846;
 
 // relaxation time
-const double TAU = 6.5;
+const double TAU = 1.0;
 
-// lattice velocity
+// physical velocity
 const double U0 = 0.1;
 
 // physical parameters
-const double LX_PHYS = NX - 1;
-const double LY_PHYS = NY - 1;
-const double LZ_PHYS = NZ - 1;
-const double DX_PHYS = LX_PHYS / (NX - 1);
-const double DY_PHYS = LY_PHYS / (NY - 1);
-const double DZ_PHYS = LZ_PHYS / (NZ - 1);
-const double U0_PHYS = U0;
-const double DT_PHYS = DX_PHYS / U0_PHYS;
+const double LX = NX - 1;
+const double LY = NY - 1;
+const double LZ = NZ - 1;
+const double DX = LX / (NX - 1);
+const double DY = (NY > 1) ? LY / (NY - 1) : 1.0;
+const double DZ = LZ / (NZ - 1);
+const double DT = DX / U0;
 
 // obstacle parameters
-const double XC = 0.25 * LX_PHYS;
-const double YC = LY_PHYS / 2.0;
-const double ZC = (LZ_PHYS / 2.0) + 0.015 * LZ_PHYS;
-const double OBST_R = LZ_PHYS / 40.0;
+const double OBST_XC = 0.25 * LX;
+const double OBST_YC = LY / 2.0;
+const double OBST_ZC = (LZ / 2.0) + 0.05 * LZ;
+const double OBST_R  = LZ / 40.0;
 
 // initial condition
-const int ic = 2; // 0 = zero
+const int ic = 3; // 0 = zero
                   // 1 = uniform streamwise
                   // 2 = poiseuille
                   // 3 = sine wave
+
+// boundary conditions (I = inlet, O = outlet, P = periodic, W = wall)
+const char bc[6] = {
+                    'I', // x-normal plane, imin
+                    'O', // x-normal plane, imax
+                    'P', // y-normal plane, jmin
+                    'P', // y-normal plane, jmax
+                    'W', // z-normal plane, kmin
+                    'W'  // z-normal plane, kmax
+                       };
 
 // D3Q19 weights
 const double weights[Q] = {
@@ -99,7 +109,7 @@ const int opp[Q] = {
                     15, // opposite of 18
                       };
 
-// D3Q19 populations streaming from outside the boundary plane
+// D3Q19 populations streaming from outside a boundary plane
 const int qo[6][5] =  {
                        { 1, 7, 8, 9,10}, // x-normal plane, imin
                        { 2,11,12,13,14}, // x-normal plane, imax
@@ -109,7 +119,7 @@ const int qo[6][5] =  {
                        { 6,10,14,16,18}  // z-normal plane, kmax
                                        };
 
-// D3Q19 populations streaming from inside the boundary plane
+// D3Q19 populations streaming from inside a boundary plane
 const int qi[6][14] = {
                        { 0, 2, 3, 4, 5, 6,11,12,13,14,15,16,17,18}, // x-normal plane, imin
                        { 0, 1, 3, 4, 5, 6, 7, 8, 9,10,15,16,17,18}, // x-normal plane, imax
@@ -118,16 +128,6 @@ const int qi[6][14] = {
                        { 0, 1, 2, 3, 4, 6, 7, 8,10,11,12,14,16,18}, // z-normal plane, kmin
                        { 0, 1, 2, 3, 4, 5, 7, 8, 9,11,12,13,15,17}  // z-normal plane, kmax
                                                                   };
-
-// boundary conditions
-const char bc[6] = {
-                    'I', // x-normal plane, imin
-                    'O', // x-normal plane, imax
-                    'P', // y-normal plane, jmin
-                    'P', // y-normal plane, jmax
-                    'W', // z-normal plane, kmin
-                    'W'  // z-normal plane, kmax
-                       };
 
 // boundary plane (outward) normals
 const int n[6][3] = {
@@ -138,3 +138,15 @@ const int n[6][3] = {
                      { 0, 0,-1}, // z-normal plane, kmin
                      { 0, 0, 1}  // z-normal plane, kmax
                                };
+
+//MPI cartesian communicator and rank constants (assigned in mpimod.c)
+MPI_Comm cart_comm       = MPI_COMM_NULL;
+int world_size      = 0;
+int cart_rank       = 0;
+int cart_coords[3]  = {0, 0, 0};
+int neighbours[6]   = {MPI_PROC_NULL, MPI_PROC_NULL,
+                       MPI_PROC_NULL, MPI_PROC_NULL,
+                       MPI_PROC_NULL, MPI_PROC_NULL};
+int offset_x = 0;
+int offset_y = 0;
+int offset_z = 0;

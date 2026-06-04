@@ -1,108 +1,62 @@
-#include "param.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "param.h"
+#include "utils.h"
 
-static int mod(int a, int b)
-{
-  int r = a % b;
-  return (r < 0) ? r + b : r;
-}
-
-void inlet(int i,
-           int j,
-           int k,
-           double *uin,
-           double *vin,
-           double *win)
+void face_bc(int    face,
+             int    face_n[3],
+             char   face_bctype,
+             double fstar[Q][LNX_H][LNY_H][LNZ_H])
 {
 
-  double z = (double)k / (NZ-1);
-  *uin = 4.0 * U0 * z * (1.0 - z);
-  *vin = 0.0;
-  *win = 0.0;
-
-}
-
-void face_bc(int face,
-             int face_n[3],
-             char face_bctype,
-             double fstar[Q][NX][NY][NZ])
-{
-
-  int imin;
-  int imax;
-  int jmin;
-  int jmax;
-  int kmin;
-  int kmax;
-
-  imin = 1;
-  imax = NX - 1;
-  jmin = 1;
-  jmax = NY - 1;
-  kmin = 1;
-  kmax = NZ - 1;
+  int imin = 1, imax = LNX;
+  int jmin = 1, jmax = LNY;
+  int kmin = 1, kmax = LNZ;
 
   switch (face) {
 
     case 0: {
-      imin = 0;
+      imin = 1;
       imax = 1;
       break;
       }
     case 1: {
-      imin = NX - 1;
-      imax = NX;
+      imin = LNX;
+      imax = LNX;
       break;
       }
     case 2: {
-      jmin = 0;
+      jmin = 1;
       jmax = 1;
       break;
       }
     case 3: {
-      jmin = NY - 1;
-      jmax = NY;
+      jmin = LNY;
+      jmax = LNY;
       break;
       }
     case 4: {
-      kmin = 0;
+      kmin = 1;
       kmax = 1;
       break;
       }
     case 5: {
-      kmin = NZ - 1;
-      kmax = NZ;
+      kmin = LNZ;
+      kmax = LNZ;
       break;
       }
   }
 
   switch (face_bctype) {
     case 'P': {
-      // periodic b.c.
-      for (int q = 0; q < Q; ++q) {
-        for (int k = kmin; k < kmax; ++k) {
-          for (int j = jmin; j < jmax; ++j) {
-            for (int i = imin; i < imax; ++i) {
-
-              int istar, jstar, kstar;
-
-              istar = mod(i - c[q][0], NX);
-              jstar = mod(j - c[q][1], NY);
-              kstar = mod(k - c[q][2], NZ);
-
-              fstar[q][i][j][k] = fstar[q][istar][jstar][kstar];
-            }
-          }
-        }
-      }
+      // periodic b.c. (handled by halo exchange)
       break;
-      }
+    }
     case 'W': {
       // wall b.c. (bounceback scheme)
-      //for (int k = kmin; k < kmax; ++k) {
-      //  for (int j = jmin; j < jmax; ++j) {
-      //    for (int i = imin; i < imax; ++i) {
+      //for (int k = kmin; k <= kmax; ++k) {
+      //  for (int j = jmin; j <= jmax; ++j) {
+      //    for (int i = imin; i <= imax; ++i) {
 
       //      for (int q = 0; q < 5; ++q) {
 
@@ -114,14 +68,12 @@ void face_bc(int face,
       //}
       //
       // wall b.c. (Hecht-Harting scheme)
-      for (int k = kmin; k < kmax; ++k) {
-        for (int j = jmin; j < jmax; ++j) {
-          for (int i = imin; i < imax; ++i) {
+      for (int k = kmin; k <= kmax; ++k) {
+        for (int j = jmin; j <= jmax; ++j) {
+          for (int i = imin; i <= imax; ++i) {
 
             double rhowall;
-            double uwall;
-            double vwall;
-            double wwall;
+            double uwall, vwall, wwall;
 
             uwall = 0.0;
             vwall = 0.0;
@@ -155,31 +107,29 @@ void face_bc(int face,
                 int s = qi[face][r];
                 int cst = c[s][0] * tx        + c[s][1] * ty        + c[s][2] * tz       ;
                 int csn = c[s][0] * face_n[0] + c[s][1] * face_n[1] + c[s][2] * face_n[2];
-                sumf = sumf + cst * fstar[s][i][j][k] * (1 - abs(csn));
+                sumf += cst * fstar[s][i][j][k] * (1 - abs(csn));
               }
 
-              fstar[q][i][j][k] = fstar[opp[q]][i][j][k] + 1.0*(1.0 / 3.0) * tu * rhowall
-                                                         + 1.0*(1.0 / 6.0) * cu * rhowall
-                                                         - 1.0*(1.0 / 2.0) * sumf;
+              fstar[q][i][j][k] = fstar[opp[q]][i][j][k] + (1.0 / 3.0) * tu * rhowall
+                                                         + (1.0 / 6.0) * cu * rhowall
+                                                         - (1.0 / 2.0) * sumf;
             }
-            fstar[face+1][i][j][k] = fstar[face+1][i][j][k] + (1.0 / 6.0) * uwall * rhowall;
+            fstar[face+1][i][j][k] += (1.0 / 6.0) * uwall * rhowall;
           }
         }
       }
       break;
-      }
+    }
     case 'I': {
       // inlet b.c. (Hecht-Harting scheme)
-      for (int k = kmin; k < kmax; ++k) {
-        for (int j = jmin; j < jmax; ++j) {
-          for (int i = imin; i < imax; ++i) {
+      for (int k = kmin; k <= kmax; ++k) {
+        for (int j = jmin; j <= jmax; ++j) {
+          for (int i = imin; i <= imax; ++i) {
 
             double rhoin;
-            double uin;
-            double vin;
-            double win;
+            double uin, vin, win;
 
-            inlet(i, j, k, &uin, &vin, &win);
+            poi(i, j, k, &uin, &vin, &win);
 
             double sumfqi = 0.0, sumfoppqo = 0.0;
             for (int p = 0; p < 14; ++p){
@@ -209,30 +159,28 @@ void face_bc(int face,
                 int s = qi[face][r];
                 int cst = c[s][0] * tx        + c[s][1] * ty        + c[s][2] * tz       ;
                 int csn = c[s][0] * face_n[0] + c[s][1] * face_n[1] + c[s][2] * face_n[2];
-                sumf = sumf + cst * fstar[s][i][j][k] * (1 - abs(csn));
+                sumf += cst * fstar[s][i][j][k] * (1 - abs(csn));
               }
 
-              fstar[q][i][j][k] = fstar[opp[q]][i][j][k] + 1.0*(1.0 / 3.0) * tu * rhoin
-                                                         + 1.0*(1.0 / 6.0) * cu * rhoin
-                                                         - 1.0*(1.0 / 2.0) * sumf;
+              fstar[q][i][j][k] = fstar[opp[q]][i][j][k] + (1.0 / 3.0) * tu * rhoin
+                                                         + (1.0 / 6.0) * cu * rhoin
+                                                         - (1.0 / 2.0) * sumf;
             }
-            fstar[face+1][i][j][k] = fstar[face+1][i][j][k] + (1.0 / 6.0) * uin * rhoin;
+            fstar[face+1][i][j][k] += (1.0 / 6.0) * uin * rhoin;
 
           }
         }
       }
       break;
-      }
+    }
     case 'O': {
       // outlet b.c. (Hecht-Harting scheme)
-      for (int k = kmin; k < kmax; ++k) {
-        for (int j = jmin; j < jmax; ++j) {
-          for (int i = imin; i < imax; ++i) {
+      for (int k = kmin; k <= kmax; ++k) {
+        for (int j = jmin; j <= jmax; ++j) {
+          for (int i = imin; i <= imax; ++i) {
 
             double rhoout;
-            double uout;
-            double vout;
-            double wout;
+            double uout, vout, wout;
 
             rhoout = 1.0;
 
@@ -247,8 +195,6 @@ void face_bc(int face,
             uout = -1.0 + (sumfqi + sumfoppqo) / rhoout;
             vout = 0.0;
             wout = 0.0;
-
-            //inlet(i, j, k, &uout, &vout, &wout);
 
             for (int p = 0; p < 5; ++p) {
 
@@ -268,20 +214,20 @@ void face_bc(int face,
                 int s = qi[face][r];
                 int cst = c[s][0] * tx        + c[s][1] * ty        + c[s][2] * tz;
                 int csn = c[s][0] * face_n[0] + c[s][1] * face_n[1] + c[s][2] * face_n[2];
-                sumf = sumf + cst * fstar[s][i][j][k] * (1 - abs(csn));
+                sumf += cst * fstar[s][i][j][k] * (1 - abs(csn));
               }
 
-              fstar[q][i][j][k] = fstar[opp[q]][i][j][k] + 1.0*(1.0 / 3.0) * tu * rhoout
-                                                         + 1.0*(1.0 / 6.0) * cu * rhoout
-                                                         - 1.0*(1.0 / 2.0) * sumf;
+              fstar[q][i][j][k] = fstar[opp[q]][i][j][k] + (1.0 / 3.0) * tu * rhoout
+                                                         + (1.0 / 6.0) * cu * rhoout
+                                                         - (1.0 / 2.0) * sumf;
             }
-            fstar[face+1][i][j][k] = fstar[face+1][i][j][k] - (1.0 / 6.0) * uout * rhoout;
+            fstar[face+1][i][j][k] -= (1.0 / 6.0) * uout * rhoout;
 
           }
         }
       }
       break;
-      }
+    }
   }
 
 }
@@ -290,125 +236,132 @@ void edge_bc(int edge,
              int edge_face[2],
              int edge_n[2][3],
              char edge_bctype[2],
-             double fstar[Q][NX][NY][NZ])
+             double fstar[Q][LNX_H][LNY_H][LNZ_H])
 {
+  // determine whether the current rank owns the global faces called
+  int owns[2];
+  owns[0] = (edge_face[0] == 0) ? (cart_coords[0] == 0)
+          : (edge_face[0] == 1) ? (cart_coords[0] == NPROCX-1)
+          : (edge_face[0] == 2) ? (cart_coords[1] == 0)
+          : (edge_face[0] == 3) ? (cart_coords[1] == NPROCY-1)
+          : (edge_face[0] == 4) ? (cart_coords[2] == 0)
+          :                       (cart_coords[2] == NPROCZ-1);
+  owns[1] = (edge_face[1] == 0) ? (cart_coords[0] == 0)
+          : (edge_face[1] == 1) ? (cart_coords[0] == NPROCX-1)
+          : (edge_face[1] == 2) ? (cart_coords[1] == 0)
+          : (edge_face[1] == 3) ? (cart_coords[1] == NPROCY-1)
+          : (edge_face[1] == 4) ? (cart_coords[2] == 0)
+          :                       (cart_coords[2] == NPROCZ-1);
+ 
+  //skip interior ranks
+  if (!owns[0] || !owns[1]) return;
 
-  int imin;
-  int imax;
-  int jmin;
-  int jmax;
-  int kmin;
-  int kmax;
-
-  imin = 1;
-  imax = NX - 1;
-  jmin = 0;
-  jmax = NY;
-  kmin = 1;
-  kmax = NZ - 1;
+  int imin = 1, imax = LNX;
+  int jmin = 1, jmax = LNY;
+  int kmin = 1, kmax = LNZ;
 
   switch (edge) {
 
     case 0: {
-      imin = 0;
+      imin = 1;
       imax = 1;
-      jmin = 0;
+      jmin = 1;
       jmax = 1;
       break;
       }
     case 1: {
-      imin = 0;
+      imin = 1;
       imax = 1;
-      jmin = NY - 1;
-      jmax = NY;
+      jmin = LNY;
+      jmax = LNY;
       break;
       }
     case 2: {
-      imin = 0;
+      imin = 1;
       imax = 1;
-      kmin = 0;
+      kmin = 1;
       kmax = 1;
       break;
       }
     case 3: {
-      imin = 0;
+      imin = 1;
       imax = 1;
-      kmin = NZ - 1;
-      kmax = NZ;
+      kmin = LNZ;
+      kmax = LNZ;
       break;
       }
     case 4: {
-      imin = NX - 1;
-      imax = NX;
-      jmin = 0;
+      imin = LNX;
+      imax = LNX;
+      jmin = 1;
       jmax = 1;
       break;
       }
     case 5: {
-      imin = NX - 1;
-      imax = NX;
-      jmin = NY - 1;
-      jmax = NY;
+      imin = LNX;
+      imax = LNX;
+      jmin = LNY;
+      jmax = LNY;
       break;
       }
     case 6: {
-      imin = NX - 1;
-      imax = NX;
-      kmin = 0;
+      imin = LNX;
+      imax = LNX;
+      kmin = 1;
       kmax = 1;
       break;
       }
     case 7: {
-      imin = NX - 1;
-      imax = NX;
-      kmin = NZ - 1;
-      kmax = NZ;
+      imin = LNX;
+      imax = LNX;
+      kmin = LNZ;
+      kmax = LNZ;
       break;
       }
     case 8: {
-      jmin = 0;
+      jmin = 1;
       jmax = 1;
-      kmin = 0;
+      kmin = 1;
       kmax = 1;
       break;
       }
     case 9: {
-      jmin = 0;
+      jmin = 1;
       jmax = 1;
-      kmin = NZ - 1;
-      kmax = NZ;
+      kmin = LNZ;
+      kmax = LNZ;
       break;
       }
     case 10: {
-      jmin = NY - 1;
-      jmax = NY;
-      kmin = 0;
+      jmin = LNY;
+      jmax = LNY;
+      kmin = 1;
       kmax = 1;
       break;
       }
     case 11: {
-      jmin = NY - 1;
-      jmax = NY;
-      kmin = NZ - 1;
-      kmax = NZ;
+      jmin = LNY;
+      jmax = LNY;
+      kmin = LNZ;
+      kmax = LNZ;
       break;
       }
 
   }
 
-  switch ((edge_bctype[0] << 8) | edge_bctype[1]) {
+  int  key = (edge_bctype[0] << 8) | edge_bctype[1];
+
+  switch (key) {
     case ('I' << 8) | 'P':{
       // inlet + periodic
-      for (int k = kmin; k < kmax; ++k) {
-        for (int j = jmin; j < jmax; ++j) {
-          for (int i = imin; i < imax; ++i) {
+      for (int k = kmin; k <= kmax; ++k) {
+        for (int j = jmin; j <= jmax; ++j) {
+          for (int i = imin; i <= imax; ++i) {
 
             double rhoin;
-            double uin;
-            double vin;
-            double win;
+            double uin, vin, win;
 
-            inlet(i, j, k, &uin, &vin, &win);
+            poi(i, j, k, &uin, &vin, &win);
 
             double sumfqi = 0.0, sumfoppqo = 0.0;
             for (int p = 0; p < 14; ++p){
@@ -438,14 +391,14 @@ void edge_bc(int edge,
                 int s = qi[edge_face[0]][r];
                 int cst = c[s][0] * tx           + c[s][1] * ty           + c[s][2] * tz          ;
                 int csn = c[s][0] * edge_n[0][0] + c[s][1] * edge_n[0][1] + c[s][2] * edge_n[0][2];
-                sumf = sumf + cst * fstar[s][i][j][k] * (1 - abs(csn));
+                sumf += cst * fstar[s][i][j][k] * (1 - abs(csn));
               }
 
-              fstar[q][i][j][k] = fstar[opp[q]][i][j][k] + 1.0*(1.0 / 3.0) * tu * rhoin
-                                                         + 1.0*(1.0 / 6.0) * cu * rhoin
-                                                         - 1.0*(1.0 / 2.0) * sumf;
+              fstar[q][i][j][k] = fstar[opp[q]][i][j][k] + (1.0 / 3.0) * tu * rhoin
+                                                         + (1.0 / 6.0) * cu * rhoin
+                                                         - (1.0 / 2.0) * sumf;
             }
-            fstar[edge_face[0]+1][i][j][k] = fstar[edge_face[0]+1][i][j][k] + (1.0 / 6.0) * uin * rhoin;
+            fstar[edge_face[0]+1][i][j][k] += (1.0 / 6.0) * uin * rhoin;
 
           }
         }
@@ -470,9 +423,9 @@ void edge_bc(int edge,
       edge_nor[1] = edge_n[0][1] + edge_n[1][1];
       edge_nor[2] = edge_n[0][2] + edge_n[1][2];
 
-      for (int k = kmin; k < kmax; ++k) {
-        for (int j = jmin; j < jmax; ++j) {
-          for (int i = imin; i < imax; ++i) {
+      for (int k = kmin; k <= kmax; ++k) {
+        for (int j = jmin; j <= jmax; ++j) {
+          for (int i = imin; i <= imax; ++i) {
 
             for (int q = 0; q < Q; ++q) {
               is_buried_inlet[q] = 0;
@@ -538,17 +491,15 @@ void edge_bc(int edge,
         }
       }
       break;
-      }
+    }
     case ('O' << 8) | 'P':{
       // outlet + periodic
-      for (int k = kmin; k < kmax; ++k) {
-        for (int j = jmin; j < jmax; ++j) {
-          for (int i = imin; i < imax; ++i) {
+      for (int k = kmin; k <= kmax; ++k) {
+        for (int j = jmin; j <= jmax; ++j) {
+          for (int i = imin; i <= imax; ++i) {
 
             double rhoout;
-            double uout;
-            double vout;
-            double wout;
+            double uout, vout, wout;
 
             rhoout = 1.0;
 
@@ -563,8 +514,6 @@ void edge_bc(int edge,
             uout = -1.0 + (sumfqi + sumfoppqo) / rhoout;
             vout = 0.0;
             wout = 0.0;
-
-            //inlet(i, j, k, &uout, &vout, &wout);
 
             for (int p = 0; p < 5; ++p) {
 
@@ -584,20 +533,20 @@ void edge_bc(int edge,
                 int s = qi[edge_face[0]][r];
                 int cst = c[s][0] * tx           + c[s][1] * ty           + c[s][2] * tz          ;
                 int csn = c[s][0] * edge_n[0][0] + c[s][1] * edge_n[0][1] + c[s][2] * edge_n[0][2];
-                sumf = sumf + cst * fstar[s][i][j][k] * (1 - abs(csn));
+                sumf += cst * fstar[s][i][j][k] * (1 - abs(csn));
               }
 
               fstar[q][i][j][k] = fstar[opp[q]][i][j][k] + 1.0*(1.0 / 3.0) * tu * rhoout
                                                          + 1.0*(1.0 / 6.0) * cu * rhoout
                                                          - 1.0*(1.0 / 2.0) * sumf;
             }
-            fstar[edge_face[0]+1][i][j][k] = fstar[edge_face[0]+1][i][j][k] - (1.0 / 6.0) * uout * rhoout;
+            fstar[edge_face[0]+1][i][j][k] -= (1.0 / 6.0) * uout * rhoout;
 
           }
         }
       }
       break;
-      }
+    }
     case ('O' << 8) | 'W':{
       // outlet + wall
       int edge_par[3];
@@ -616,9 +565,9 @@ void edge_bc(int edge,
       edge_nor[1] = edge_n[0][1] + edge_n[1][1];
       edge_nor[2] = edge_n[0][2] + edge_n[1][2];
 
-      for (int k = kmin; k < kmax; ++k) {
-        for (int j = jmin; j < jmax; ++j) {
-          for (int i = imin; i < imax; ++i) {
+      for (int k = kmin; k <= kmax; ++k) {
+        for (int j = jmin; j <= jmax; ++j) {
+          for (int i = imin; i <= imax; ++i) {
 
             for (int q = 0; q < Q; ++q) {
               is_buried_outlet[q] = 0;
@@ -685,17 +634,15 @@ void edge_bc(int edge,
         }
       }
       break;
-      }
+    }
     case ('P' << 8) | 'W':{
       // periodic + wall
-      for (int k = kmin; k < kmax; ++k) {
-        for (int j = jmin; j < jmax; ++j) {
-          for (int i = imin; i < imax; ++i) {
+      for (int k = kmin; k <= kmax; ++k) {
+        for (int j = jmin; j <= jmax; ++j) {
+          for (int i = imin; i <= imax; ++i) {
 
             double rhowall;
-            double uwall;
-            double vwall;
-            double wwall;
+            double uwall, vwall, wwall;
 
             uwall = 0.0;
             vwall = 0.0;
@@ -729,43 +676,40 @@ void edge_bc(int edge,
                 int s = qi[edge_face[1]][r];
                 int cst = c[s][0] * tx           + c[s][1] * ty           + c[s][2] * tz          ;
                 int csn = c[s][0] * edge_n[1][0] + c[s][1] * edge_n[1][1] + c[s][2] * edge_n[1][2];
-                sumf = sumf + cst * fstar[s][i][j][k] * (1 - abs(csn));
+                sumf += cst * fstar[s][i][j][k] * (1 - abs(csn));
               }
 
-              fstar[q][i][j][k] = fstar[opp[q]][i][j][k] + 1.0*(1.0 / 3.0) * tu * rhowall
-                                                         + 1.0*(1.0 / 6.0) * cu * rhowall
-                                                         - 1.0*(1.0 / 2.0) * sumf;
+              fstar[q][i][j][k] = fstar[opp[q]][i][j][k] + (1.0 / 3.0) * tu * rhowall
+                                                         + (1.0 / 6.0) * cu * rhowall
+                                                         - (1.0 / 2.0) * sumf;
             }
-            fstar[edge_face[1]+1][i][j][k] = fstar[edge_face[1]+1][i][j][k] + (1.0 / 6.0) * uwall * rhowall;
+            fstar[edge_face[1]+1][i][j][k] += (1.0 / 6.0) * uwall * rhowall;
           }
         }
       }
       break;
-      }
+    }
   }
 }
 
-void obst_bounce(int obst[NX][NY][NZ],
-                 double f[Q][NX][NY][NZ])
+void obst_bounce(int    obst[LNX_H][LNY_H][LNZ_H],
+                 double obst_omega[3],
+                 double f[Q][LNX_H][LNY_H][LNZ_H])
 {
 
-  for (int k = 0; k < NZ; ++k) {
-    for (int j = 0; j < NY; ++j) {
-      for (int i = 0; i < NX; ++i) {
-
+  for (int k = 1; k <= LNZ; ++k) {
+    for (int j = 1; j <= LNY; ++j) {
+      for (int i = 1; i <= LNX; ++i) {
+        if (obst[i][j][k] != 1) continue;
         // simple implementation
         //
         //double ftmp[Q];
         //
         //for (int q = 0; q < Q; ++q){
-        //  if (obst[i][j][k] == 1) {
-        //    ftmp[q] = f[opp[q]][i][j][k];
-        //  }
+        //  ftmp[q] = f[opp[q]][i][j][k];
         //}
         //for (int q = 0; q < Q; ++q){
-        //  if (obst[i][j][k] == 1) {
-        //    f[q][i][j][k] = ftmp[q];
-        //  }
+        //  f[q][i][j][k] = ftmp[q];
         //}
 
         // Ladd and Verberg link-bounce-back
@@ -775,38 +719,36 @@ void obst_bounce(int obst[NX][NY][NZ],
 
         for (int q = 0; q < Q; ++q) {
 
-          if (obst[i][j][k] == 1) {
+          int ip = i + c[q][0];
+          int jp = j + c[q][1];
+          int kp = k + c[q][2];
 
-            int ip;
-            int jp;
-            int kp;
+          double rx = (double)gi(i) - OBST_XC;
+          double ry = (double)gj(j) - OBST_YC;
+          double rz = (double)gk(k) - OBST_ZC;
 
-            ip = mod(i + c[q][0], NX);
-            jp = mod(j + c[q][1], NY);
-            kp = mod(k + c[q][2], NZ);
+          double ubx = obst_omega[1]*rz - obst_omega[2]*ry;
+          double uby = obst_omega[2]*rx - obst_omega[0]*rz;
+          double ubz = obst_omega[0]*ry - obst_omega[1]*rx;
+          double ubc = ubx*c[q][0] + uby*c[q][1] + ubz*c[q][2];
 
-            if (obst[ip][jp][kp] == 0) {
-              ftmp[q]  = f[opp[q]][i][j][k];
-              ftmp2[q] = f[opp[q]][ip][jp][kp];
-            }
+          if (obst[ip][jp][kp] == 0) {
+            ftmp[q]  = f[opp[q]][i][j][k]   -6.0*weights[q]*ubc;
+            ftmp2[q] = f[opp[q]][ip][jp][kp]+6.0*weights[q]*ubc;
+          } else {
+            ftmp [q]=f[q][i][j][k];
+            ftmp2[q]=f[q][ip][jp][kp];
           }
         }
         for (int q = 0; q < Q; ++q) {
 
-          if (obst[i][j][k] == 1) {
+          int ip = i + c[q][0];
+          int jp = j + c[q][1];
+          int kp = k + c[q][2];
 
-            int ip;
-            int jp;
-            int kp;
-
-            ip = mod(i + c[q][0], NX);
-            jp = mod(j + c[q][1], NY);
-            kp = mod(k + c[q][2], NZ);
-
-            if (obst[ip][jp][kp] == 0) {
-              f[q][i][j][k]    = ftmp[q];
-              f[q][ip][jp][kp] = ftmp2[q];
-            }
+          if (obst[ip][jp][kp] == 0) {
+            f[q][i][j][k]    = ftmp[q];
+            f[q][ip][jp][kp] = ftmp2[q];
           }
         }
 
@@ -816,80 +758,42 @@ void obst_bounce(int obst[NX][NY][NZ],
 
 }
 
-void boundary(double fstar[Q][NX][NY][NZ])
+void boundary(double fstar[Q][LNX_H][LNY_H][LNZ_H])
 {
+  // determine which faces are owned by the current rank
+  int owns_face[6] = { 
+    (cart_coords[0] == 0), 
+    (cart_coords[0] == NPROCX-1), 
+    (cart_coords[1] == 0), 
+    (cart_coords[1] == NPROCY-1), 
+    (cart_coords[2] == 0), 
+    (cart_coords[2] == NPROCZ-1) 
+  }; 
 
-  int edge_face[2];
-
-  int face_n[3];
-  int edge_n[2][3];
-
-  char face_bctype;
-  char edge_bctype[2];
-
-  //for (int face = 0; face < 6; face++) {
-
-  //  face_bctype = bc[face];
-  //  if (face_bctype == 'P') {
-
-  //    for (int m = 0; m < 3; m++){
-  //        face_n[m] = n[face][m];
-  //    }
-
-  //    face_bc(face, face_n, face_bctype, fstar);
-  //  }
-  //}
-  for (int face = 0; face < 6; face++) {
-
-    face_bctype = bc[face];
-    if (face_bctype == 'I') {
-
-      for (int m = 0; m < 3; m++){
-          face_n[m] = n[face][m];
-      }
-
-      face_bc(face, face_n, face_bctype, fstar);
+  // BCs on faces: I first, then O, then W
+  for (int pass=0; pass<3; ++pass) {
+    char target = (pass==0)?'I':(pass==1)?'O':'W';
+    for (int face=0; face<6; ++face) {
+      if (!owns_face[face]) continue;
+      if (bc[face] != target) continue;
+      int face_n[3] = {n[face][0], n[face][1], n[face][2]};
+      face_bc(face, face_n, bc[face], fstar);
     }
   }
-  for (int face = 0; face < 6; face++) {
 
-    face_bctype = bc[face];
-    if (face_bctype == 'O') {
-
-      for (int m = 0; m < 3; m++){
-          face_n[m] = n[face][m];
-      }
-
-      face_bc(face, face_n, face_bctype, fstar);
-    }
-  }
-  for (int face = 0; face < 6; face++) {
-
-    face_bctype = bc[face];
-    if (face_bctype == 'W') {
-
-      for (int m = 0; m < 3; m++){
-          face_n[m] = n[face][m];
-      }
-
-      face_bc(face, face_n, face_bctype, fstar);
-    }
-  }
-  for (int edge = 0; edge < 12; edge++) {
-
-    edge_face[0] = (edge / 4) + 0 + (edge / 10);
-    edge_face[1] =  2 + (edge % 4)+ 2 * (edge / 8) - 2 * (edge / 10);
-
+  // BCs on edges
+  for (int edge=0; edge<12; ++edge) {
+    int edge_face[2], edge_n[2][3];
+    char edge_bctype[2];
+    edge_face[0] = (edge/4) + 0 + (edge/10);
+    edge_face[1] =  2 + (edge%4) + 2*(edge/8) - 2*(edge/10);
     edge_bctype[0] = bc[edge_face[0]];
     edge_bctype[1] = bc[edge_face[1]];
-
     for (int m = 0; m < 3; m++){
         edge_n[0][m] = n[edge_face[0]][m];
         edge_n[1][m] = n[edge_face[1]][m];
     }
-
     edge_bc(edge, edge_face, edge_n, edge_bctype, fstar);
-
   }
 
 }

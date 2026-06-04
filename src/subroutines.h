@@ -1,96 +1,110 @@
-void build_obstacle(int obst[NX][NY][NZ]);
+#ifndef SUBROUTINES_H
+#define SUBROUTINES_H
 
-void compute_obst_torque(int obst[NX][NY][NZ],
-                         double fstar[Q][NX][NY][NZ],
-                         double obst_omega[3],
-                         double obst_torq[3]);
+#include "param.h"
 
-void move_obstacle(int iter,
-                   int obst[NX][NY][NZ],
-                   double obst_theta[3],
-                   double obst_torq[3],
-                   double obst_omega[3]);
+// mpimod.c
+void init_mpi  (void);
 
-void initialize(int ic,
-                double rho[NX][NY][NZ],
-                double u[NX][NY][NZ],
-                double v[NX][NY][NZ],
-                double w[NX][NY][NZ]);
+void local_mpi (void);
 
-void compute_force(double rho[NX][NY][NZ],
-                   double u[NX][NY][NZ],
-                   double v[NX][NY][NZ],
-                   double w[NX][NY][NZ],
-                   double fbx[NX][NY][NZ],
-                   double fby[NX][NY][NZ],
-                   double fbz[NX][NY][NZ]);
 
-void equilibrium(double rho[NX][NY][NZ],
-                 double u[NX][NY][NZ],
-                 double v[NX][NY][NZ],
-                 double w[NX][NY][NZ],
-                 double feq[Q][NX][NY][NZ]);
+// obstacle.c
+void build_obstacle      (int    obst[LNX_H][LNY_H][LNZ_H],
+                          double obst_theta[3]);
 
-void stream(double f[Q][NX][NY][NZ],
-            double fstar[Q][NX][NY][NZ]);
+void compute_obst_torque (int    obst[LNX_H][LNY_H][LNZ_H],
+                          double fstar[Q][LNX_H][LNY_H][LNZ_H],
+                          double obst_omega[3],
+                          double obst_torq[3]);
 
-void moments(double fstar[Q][NX][NY][NZ],
-             int obst[NX][NY][NZ],
-             double fbx[NX][NY][NZ],
-             double fby[NX][NY][NZ],
-             double fbz[NX][NY][NZ],
-             double rho[NX][NY][NZ],
-             double u[NX][NY][NZ],
-             double v[NX][NY][NZ],
-             double w[NX][NY][NZ]);
+void move_obstacle       (int    iter,
+                          int    obst[LNX_H][LNY_H][LNZ_H],
+                          double obst_theta[3], double obst_torq[3],
+                          double obst_omega[3]);
 
-void guo(double fbx[NX][NY][NZ],
-         double fby[NX][NY][NZ],
-         double fbz[NX][NY][NZ],
-         double u[NX][NY][NZ],
-         double v[NX][NY][NZ],
-         double w[NX][NY][NZ],
-         double fguo[Q][NX][NY][NZ]);
+// init.c
+void initialize          (int    ic,
+                          double rho[LNX_H][LNY_H][LNZ_H],
+                          double u[LNX_H][LNY_H][LNZ_H],
+                          double v[LNX_H][LNY_H][LNZ_H],
+                          double w[LNX_H][LNY_H][LNZ_H]);
 
-void collide(int obst[NX][NY][NZ],
-             double fstar[Q][NX][NY][NZ],
-             double feq[Q][NX][NY][NZ],
-             double fguo[Q][NX][NY][NZ]);
+// force.c
+void compute_force       (double rho[LNX_H][LNY_H][LNZ_H],
+                          double u[LNX_H][LNY_H][LNZ_H],
+                          double v[LNX_H][LNY_H][LNZ_H],
+                          double w[LNX_H][LNY_H][LNZ_H],
+                          double fbx[LNX_H][LNY_H][LNZ_H],
+                          double fby[LNX_H][LNY_H][LNZ_H],
+                          double fbz[LNX_H][LNY_H][LNZ_H]);
 
-void obst_bounce(int obst[NX][NY][NZ],
-                 double f[Q][NX][NY][NZ]);
+// lbm.c
+void equilibrium         (double rho[LNX_H][LNY_H][LNZ_H],
+                          double u[LNX_H][LNY_H][LNZ_H],
+                          double v[LNX_H][LNY_H][LNZ_H],
+                          double w[LNX_H][LNY_H][LNZ_H],
+                          double feq[Q][LNX_H][LNY_H][LNZ_H]);
 
-void boundary(double fstar[Q][NX][NY][NZ]);
+void stream              (double f[Q][LNX_H][LNY_H][LNZ_H],
+                          double fstar[Q][LNX_H][LNY_H][LNZ_H]);
 
-void write_field(int iter,
-                 double field[NX][NY][NZ],
-                 const char* name);
+void moments             (double fstar[Q][LNX_H][LNY_H][LNZ_H],
+                          int    obst[LNX_H][LNY_H][LNZ_H],
+                          double fbx[LNX_H][LNY_H][LNZ_H],
+                          double fby[LNX_H][LNY_H][LNZ_H],
+                          double fbz[LNX_H][LNY_H][LNZ_H],
+                          double rho[LNX_H][LNY_H][LNZ_H],
+                          double u[LNX_H][LNY_H][LNZ_H],
+                          double v[LNX_H][LNY_H][LNZ_H],
+                          double w[LNX_H][LNY_H][LNZ_H]);
 
-void write_0d(int iter,
-              double time,
-              double var,
-              const char* name);
+void guo                 (double fbx[LNX_H][LNY_H][LNZ_H],
+                          double fby[LNX_H][LNY_H][LNZ_H],
+                          double fbz[LNX_H][LNY_H][LNZ_H],
+                          double u[LNX_H][LNY_H][LNZ_H],
+                          double v[LNX_H][LNY_H][LNZ_H],
+                          double w[LNX_H][LNY_H][LNZ_H],
+                          double fguo[Q][LNX_H][LNY_H][LNZ_H]);
 
-void write_field_slice(int iter,
-                       double slice[NX][NY][NZ],
-                       int direction,
-                       int position,
-                       const char* name);
+void collide             (int    obst [LNX_H][LNY_H][LNZ_H],
+                          double fstar[Q][LNX_H][LNY_H][LNZ_H],
+                          double feq  [Q][LNX_H][LNY_H][LNZ_H],
+                          double fguo [Q][LNX_H][LNY_H][LNZ_H]);
 
-double max_u(double u[NX][NY][NZ]);
+// bound.c
+void obst_bounce         (int    obst[LNX_H][LNY_H][LNZ_H],
+                          double obst_omega[3],
+                          double f[Q][LNX_H][LNY_H][LNZ_H]);
 
-double max_kinetic(double rho[NX][NY][NZ],
-                   double u[NX][NY][NZ],
-                   double v[NX][NY][NZ],
-                   double w[NX][NY][NZ]);
+void boundary            (double fstar[Q][LNX_H][LNY_H][LNZ_H]);
 
-void compute_kinetic(double rho[NX][NY][NZ],
-                     double u[NX][NY][NZ],
-                     double v[NX][NY][NZ],
-                     double w[NX][NY][NZ],
-                     double Kin[NX][NY][NZ]);
+// halo.c 
+void halo_exchange       (double f[Q][LNX_H][LNY_H][LNZ_H]);
 
-void compute_obst_drag(double fstar[Q][NX][NY][NZ],
-                       int obst[NX][NY][NZ],
-                       double obst_vel[3],
-                       double obst_force[3]);
+void halo_exchange_int   (int    a[LNX_H][LNY_H][LNZ_H]);
+
+// output.c
+void write_field         (int         iter,
+                          double      field[LNX_H][LNY_H][LNZ_H],
+                          const char *name);
+
+void write_0d            (int         iter,
+                          double      time,
+                          double      var,
+                          const char *name);
+
+void write_field_slice   (int         iter,
+                          double      slice[LNX_H][LNY_H][LNZ_H],
+                          int         direction,
+                          int         position,
+                          const char *name);
+
+double max_u             (double u[LNX_H][LNY_H][LNZ_H]);
+
+void compute_obst_drag   (double fstar[Q][LNX_H][LNY_H][LNZ_H],
+                          int    obst[LNX_H][LNY_H][LNZ_H],
+                          double obst_vel[3],
+                          double obst_force[3]);
+
+#endif

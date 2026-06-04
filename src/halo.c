@@ -14,10 +14,10 @@
 // largest buffer needed across all three passes
 #define MAXBUF (ZBUF > YBUF ? (ZBUF > XBUF ? ZBUF : XBUF) : (YBUF > XBUF ? YBUF : XBUF))
 
-static double *sbuf_lo = NULL;
-static double *sbuf_hi = NULL;
-static double *rbuf_lo = NULL;
-static double *rbuf_hi = NULL;
+static double sbuf_lo[MAXBUF];
+static double sbuf_hi[MAXBUF];
+static double rbuf_lo[MAXBUF];
+static double rbuf_hi[MAXBUF];
 
 // same logic for halo exchange of integer fields
 #define XIBUF  (LNY   * LNZ  )
@@ -25,28 +25,10 @@ static double *rbuf_hi = NULL;
 #define ZIBUF  (LNX_H * LNY_H)
 #define MAXIBUF (ZIBUF > YIBUF ? (ZIBUF > XIBUF ? ZIBUF : XIBUF) : (YIBUF > XIBUF ? YIBUF : XIBUF))
 
-static int *isbuf_lo = NULL;
-static int *isbuf_hi = NULL;
-static int *irbuf_lo = NULL;
-static int *irbuf_hi = NULL;
-
-void halo_init(void)
-{
-  sbuf_lo  = (double *)malloc(MAXBUF  * sizeof(double));
-  sbuf_hi  = (double *)malloc(MAXBUF  * sizeof(double));
-  rbuf_lo  = (double *)malloc(MAXBUF  * sizeof(double));
-  rbuf_hi  = (double *)malloc(MAXBUF  * sizeof(double));
-  isbuf_lo = (int    *)malloc(MAXIBUF * sizeof(int));
-  isbuf_hi = (int    *)malloc(MAXIBUF * sizeof(int));
-  irbuf_lo = (int    *)malloc(MAXIBUF * sizeof(int));
-  irbuf_hi = (int    *)malloc(MAXIBUF * sizeof(int));
-
-  if (!sbuf_lo || !sbuf_hi || !rbuf_lo || !rbuf_hi ||
-      !isbuf_lo || !isbuf_hi || !irbuf_lo || !irbuf_hi) {
-    fprintf(stderr, "halo_init: malloc failed\n");
-    MPI_Abort(cart_comm, 1);
-  }
-}
+static int isbuf_lo[MAXIBUF];
+static int isbuf_hi[MAXIBUF];
+static int irbuf_lo[MAXIBUF];
+static int irbuf_hi[MAXIBUF];
 
 void halo_exchange(double f[Q][LNX_H][LNY_H][LNZ_H])
 {

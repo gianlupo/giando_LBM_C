@@ -29,6 +29,8 @@ const int ic = 3; // 0 = zero
                   // 1 = uniform streamwise
                   // 2 = poiseuille
                   // 3 = sine wave
+                  // 4 = taylor-green
+                  // 5 = antuono
 
 // boundary conditions (I = inlet, O = outlet, P = periodic, W = wall)
 const char bc[6] = {
